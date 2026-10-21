@@ -1,0 +1,92 @@
+name: Lutli
+options:
+  bundleIdPrefix: com.lutli
+  deploymentTarget:
+    iOS: "17.0"
+  xcodeVersion: "16.0"
+  createIntermediateGroups: true
+packages:
+  LutliCore:
+    path: ..
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    IPHONEOS_DEPLOYMENT_TARGET: "17.0"
+    SWIFT_STRICT_CONCURRENCY: targeted
+    CLANG_ENABLE_MODULES: YES
+    ENABLE_USER_SCRIPT_SANDBOXING: YES
+    CODE_SIGN_STYLE: Automatic
+    DEVELOPMENT_TEAM: ""
+    TARGETED_DEVICE_FAMILY: "1"
+targets:
+  Lutli:
+    type: application
+    platform: iOS
+    sources:
+      - path: Lutli
+        excludes:
+          - Info.plist
+    info:
+      path: Lutli/Info.plist
+      properties:
+        CFBundleDisplayName: Lutli
+        CFBundleShortVersionString: "0.1.0"
+        CFBundleVersion: "1"
+        NSCameraUsageDescription: Lutli uses your camera to preview film looks and take photos.
+        NSPhotoLibraryAddUsageDescription: Lutli saves the photos you choose to capture, including a clean copy when enabled.
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+        UILaunchScreen:
+          UIColorName: LaunchBackground
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+        UIUserInterfaceStyle: Dark
+        ITSAppUsesNonExemptEncryption: false
+        LSRequiresIPhoneOS: true
+        UTImportedTypeDeclarations:
+          - UTTypeIdentifier: app.lutli.cube
+            UTTypeDescription: 3D Color Lookup Table
+            UTTypeConformsTo:
+              - public.plain-text
+            UTTypeTagSpecification:
+              public.filename-extension:
+                - cube
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.lutli.camera
+        MARKETING_VERSION: "0.1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        GENERATE_INFOPLIST_FILE: NO
+        INFOPLIST_FILE: Lutli/Info.plist
+        SUPPORTS_MACCATALYST: NO
+        SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: NO
+        ENABLE_PREVIEWS: YES
+    dependencies:
+      - package: LutliCore
+  LutliTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: LutliTests
+    dependencies:
+      - target: Lutli
+      - package: LutliCore
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.lutli.camera.tests
+        GENERATE_INFOPLIST_FILE: YES
+schemes:
+  Lutli:
+    build:
+      targets:
+        Lutli: all
+        LutliTests: [test]
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets:
+        - LutliTests
+      gatherCoverageData: true
+    archive:
+      config: Release

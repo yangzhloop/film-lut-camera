@@ -35,7 +35,7 @@ The first small icon opens **Your looks**. It is a navigation control, not a neu
 
 Tapping a filter label selects the look. Mark the selected label with a simple outline. The last-capture thumbnail may remain photographic; filter selectors use graphic labels instead of photographic thumbnails.
 
-The neutral/original filter's position and label design still need to be specified.
+The implementation places Original immediately after the library button, with `ORIGINAL / RGB` on charcoal and cream.
 
 ## App menu
 
@@ -73,13 +73,13 @@ Either text section accepts short words or numbers. Example text such as `DAYLIG
 
 Use a clear Save filter action and a cancel/back path. Saving should update the label wherever that look appears. Cancel behavior for unsaved changes still needs definition.
 
-The proposed readability behavior chooses black or white lettering to contrast with each section. Exact palette membership, whether both sections share the same palette, text limits, casing, and long-name handling are still open.
+The implementation chooses black or white lettering using the stronger contrast. Both sections share an eight-color palette and accept 1–12 characters after trimming. Text is preserved as entered. See the [feature specification](feature-specification.md) for current validation rules.
 
 ## White balance and exposure
 
 The proposed white-balance panel offers Auto, Lock, and Manual modes, followed by temperature and tint controls when supported. Selecting a manual value should have an explicit relationship to the active mode.
 
-The current proposal keeps white balance and exposure session-wide while intensity belongs to each look. Validate that behavior during prototyping; it is not yet a finalized persistence rule.
+The implementation keeps white balance and exposure session-wide while intensity belongs to each look. Validate this behavior on real devices before release.
 
 Exposure compensation belongs to the automatic-exposure workflow. Any later manual shutter/ISO mode needs its own coherent exposure interaction.
 

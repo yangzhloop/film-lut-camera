@@ -1,0 +1,16 @@
+# Swift / Xcode
+.build/
+.swiftpm/
+DerivedData/
+*.xcuserstate
+xcuserdata/
+*.xcresult
+# Generated from ios/project.yml
+/ios/Lutli.xcodeproj/
+
+# Local tooling and developer settings
+.DS_Store
+.env
+.env.*
+!.env.example
+*.local
