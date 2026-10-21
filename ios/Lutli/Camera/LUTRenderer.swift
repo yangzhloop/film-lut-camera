@@ -10,6 +10,7 @@ final class LUTRenderer {
     struct Recipe {
         let dimension: Int
         let rgbaData: Data
+        let diffusion: DiffusionSettings
     }
 
     private let lock = NSLock()
@@ -26,14 +27,20 @@ final class LUTRenderer {
             .cacheIntermediates: false
         ])
         let identity = CubeLUT.identity()
-        recipe = Recipe(dimension: identity.dimension, rgbaData: identity.rgbaData)
+        recipe = Recipe(dimension: identity.dimension, rgbaData: identity.rgbaData, diffusion: DiffusionSettings())
     }
 
     func setLUT(_ cube: CubeLUT) {
-        let value = Recipe(dimension: cube.dimension, rgbaData: cube.rgbaData)
+        let data = cube.rgbaData
         lock.lock()
-        recipe = value
-        lock.unlock()
+        defer { lock.unlock() }
+        recipe = Recipe(dimension: cube.dimension, rgbaData: data, diffusion: recipe.diffusion)
+    }
+
+    func setDiffusion(_ settings: DiffusionSettings) {
+        lock.lock()
+        defer { lock.unlock() }
+        recipe = Recipe(dimension: recipe.dimension, rgbaData: recipe.rgbaData, diffusion: settings)
     }
 
     func snapshot() -> Recipe {
@@ -64,8 +71,9 @@ final class LUTRenderer {
         cube.setValue(recipe.dimension, forKey: "inputCubeDimension")
         cube.setValue(recipe.rgbaData, forKey: "inputCubeData")
         cube.setValue(colorSpace, forKey: "inputColorSpace")
-        guard let output = cube.outputImage,
-              let image = context.createCGImage(output, from: input.extent, format: .RGBA8, colorSpace: colorSpace) else {
+        guard let graded = cube.outputImage else { throw CameraFailure.renderingFailed }
+        let output = try DiffusionRenderer.apply(to: graded, source: clamped, settings: recipe.diffusion)
+        guard let image = context.createCGImage(output, from: input.extent, format: .RGBA8, colorSpace: colorSpace) else {
             throw CameraFailure.renderingFailed
         }
         return image

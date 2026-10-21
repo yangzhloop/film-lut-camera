@@ -1,27 +1,27 @@
 # Native iOS architecture
 
-Status: selected for the first implementation. The user chose native iOS after comparing it with a shared Flutter UI. Android remains a later platform implementation. The F10 diffusion extension described below is approved planning scope; the current renderer still implements the LUT-only baseline.
+Status: native iOS implementation with the F10 diffusion extension integrated in source. The user chose SwiftUI after comparing it with a shared Flutter UI. Android remains a later platform implementation. The current 45 core tests pass; native diffusion renderer/UI CI and physical-device validation remain pending. See the [diffusion implementation plan](../planning/diffusion-implementation.md).
 
 ## Components
 
 | Component | Responsibility | Validation |
 | --- | --- | --- |
-| `Sources/LutliCore` | Bounded .cube parsing, starter LUT generation, labels/palette, five-slot persistent library | Swift package tests on Linux/macOS |
-| `ios/Lutli/Camera` | AVFoundation lifecycle and controls, Core Image rendering, still capture, Photos saving | Apple-framework tests and physical iPhone checks |
-| `ios/Lutli/App` | Main-actor application state, look selection, preferences, timer and library coordination | Apple-platform integration/UI checks |
-| `ios/Lutli/Views` | SwiftUI camera, looks collection, editor, controls, menu and review | Simulator/device layout and accessibility checks |
+| `Sources/LutliCore` | Bounded .cube parsing, starter LUT generation, labels/palette, five-slot persistent library, diffusion state/settings | Swift package tests on Linux/macOS |
+| `ios/Lutli/Camera` | AVFoundation lifecycle and controls, LUT/diffusion rendering, full capture recipe, still capture, Photos saving | Apple-framework tests and physical iPhone checks |
+| `ios/Lutli/App` | Main-actor application state, look selection, session diffusion settings, preferences, timer and library coordination | Apple-platform integration/UI checks |
+| `ios/Lutli/Views` | SwiftUI camera, diffusion tray, looks collection, editor, controls, menu and review | Simulator/device layout and accessibility checks |
 | `ios/project.yml` | Reproducible Xcode project definition | XcodeGen followed by Xcode build/tests |
 
 ## Camera and rendering flow
 
-The following diagram describes the current implementation, before F10 diffusion processing:
+The preview and still paths share the LUT/diffusion processing contract:
 
 ```mermaid
 flowchart LR
     Camera[AVCaptureSession] --> Frames[Video frame queue]
-    Frames --> Preview[Shared SDR sRGB LUT renderer]
+    Frames --> Preview[Shared SDR sRGB LUT and diffusion renderer]
     Preview --> UI[SwiftUI preview]
-    Shutter[Shutter action] --> Recipe[Immutable look snapshot]
+    Shutter[Shutter action] --> Recipe[Immutable LUT and diffusion snapshot]
     Camera --> Photo[AVCapturePhotoOutput]
     Photo --> Capture[Full-resolution render]
     Recipe --> Capture
@@ -31,29 +31,29 @@ flowchart LR
 
 Session configuration and camera-device mutations are serialized on a dedicated queue. Preview rendering uses a separate queue, discards late frames, and bounds UI frame delivery. The initial preview is limited to a 1280-pixel long edge and 15 delivered frames per second; its practical latency, quality, and energy use require measurement on real devices. Captured photographs use the full configured still dimensions, not the preview buffer.
 
-One reusable Core Image context converts into the SDR sRGB processing/output contract. Filter instances are local to rendering operations. Preserve an embedded source image profile so Display P3 data is converted rather than reinterpreted as sRGB. The selected LUT and intensity are frozen at shutter time; changing the selected look while a photo is processing must not change that photo.
+One reusable Core Image context converts into the SDR sRGB processing/output contract. Filter instances are local to rendering operations. Preserve an embedded source image profile so Display P3 data is converted rather than reinterpreted as sRGB. The blended LUT and diffusion settings are frozen together at shutter time; changing either while a photo is processing must not change that photo.
 
 The first implementation is portrait-only. Preview framing uses aspect fit and maps touch coordinates through the displayed image rectangle. Portrait rotation, front-camera mirroring and output orientation need physical-device verification.
 
-## Planned F10 extension: diffusion and colored halation
+## F10 implementation: diffusion and colored halation
 
-Status: not implemented. See the [feature specification](../planning/feature-specification.md) and [M4a roadmap](../planning/roadmap.md) for behavior and evidence gates.
+The feature is implemented in source. The [feature specification](../planning/feature-specification.md), [implementation plan](../planning/diffusion-implementation.md) and [M4a roadmap](../planning/roadmap.md) separate the behavior from its remaining validation gates.
 
-HDF and Black Mist require spatial processing that spreads light across neighboring pixels. Add this as a separate render stage; a LUT alone cannot encode it. Continue to use the existing `.cube` import contract and keep imported LUT files unchanged.
+`DiffusionState` owns one active effect and independently remembered HDF/Black Mist strengths. It starts Off on every fresh app launch. HDF's initial 35% strength with Neutral glow and Black Mist's 20% strength are development values, not calibrated optical-filter equivalents. The immutable `DiffusionSettings` normalizes finite strength/color components and prevents Black Mist from inheriting HDF tint.
 
-The planned render recipe contains the selected LUT and its look intensity, one effect type (Off/HDF/Black Mist), a separate effect strength, HDF glow color and all parameters required for that capture. Snapshot the entire recipe at the shutter action. Later changes to effect, strength or glow color must not alter an in-flight photograph.
+The `LUTRenderer.Recipe` contains the already blended LUT data plus diffusion settings. A lock protects both fields: changing the LUT retains the existing effect, and changing the effect retains the LUT. The camera service takes a value snapshot at the shutter action, so subsequent look, strength or glow-color edits cannot alter an in-flight photo. Algorithm parameters are fixed by the running renderer implementation.
 
-Off or 0% effect strength must bypass the spatial stage and preserve the current LUT-only result. Original or 0% look intensity bypasses the creative LUT while leaving an active diffusion effect in place. A requested clean-original JPEG is generated before both creative stages, retaining the camera's exposure/WB processing; it is still a processed JPEG, not RAW.
+`DiffusionRenderer` adds spatial processing after LUT grading. It derives a thresholded highlight mask from the ungraded, clamped input's peak RGB component so saturated lights can contribute as well as white lights. Neutral HDF and Black Mist use the graded highlight color; named/custom HDF colors tint the highlight contribution before blurring. Close and wide Gaussian layers are combined and screen-composited over the graded base. Black Mist also applies a restrained blend with a softened base for local contrast reduction.
 
-HDF combines highlight diffusion with an optional colored halation treatment, localized to highlights and their halos. Black Mist uses neutral diffusion with controlled contrast softening and exposes strength only. The final highlight extraction, threshold/rolloff, compositing method, glow-color handling and processing order relative to LUT grading must be selected through reference-image tests and photographic review. The UI illustration establishes interaction, not calibrated algorithms or optical equivalence.
+Only the soft-light and softening layers are downscaled to a maximum 640-pixel long edge. The base image retains full capture resolution, and blur radii are fractions of the working image dimensions. The soft layers are scaled back for compositing, with the original extent and origin restored. This bounds blur work and defines proportional preview/photo glow; appearance, edge behavior and proportionality still require the new Apple tests and physical-image review.
 
-Use one explicit color and processing contract for preview and capture. Normalize spatial radii to image dimensions so preview downscaling does not change the apparent glow size in full-resolution output. Preserve output extent, orientation and edge behavior. Validate gamut/clipping, dark regions and skin tones in addition to bright point-light fixtures. Reuse rendering resources, keep work off the main actor and retain bounded frame delivery; the current preview limit does not establish acceptable performance with diffusion enabled.
+Off or 0% effect strength returns the graded image without running diffusion. Original or 0% look intensity leaves an active diffusion effect in place. The optional clean-original JPEG is rendered directly from the capture before both creative stages, retaining camera exposure/WB processing; it is still a processed JPEG, not RAW. The `.cube` import contract and stored LUT files are unchanged.
 
-The application state will own session-wide effect settings independently of each look. They survive LUT/lens changes, tray dismissal, Off/reselection and background/foreground within the same app session. Each fresh launch starts with Off; the remember-last-look preference continues to control only the look. Keep per-effect strength and HDF color in session memory until a separate persistence feature is specified.
+`LutliAppModel` keeps diffusion in session memory independently of look preferences. Settings survive LUT/lens changes, tray dismissal, Off/reselection and background/foreground within that app session. Remember-last-look restores only the look; diffusion is not written to disk.
 
-The SwiftUI tray overlays the preview's lower edge and expands upward from the Filters shortcut beside EV/WB. The preview geometry, permanent toolbar, LUT strip and shutter remain fixed. Overlay controls must intercept their own touches so adjusting strength does not trigger focus behind the tray. Avoid overlapping lens controls; the approved concept hides them while the tray is open.
+The implemented SwiftUI tray overlays the preview's lower edge and expands upward from Filters beside EV/WB. Preview geometry, permanent toolbar, LUT strip and shutter stay fixed. The tray intercepts its own touches, hides the lens controls while open, and offers bounded scrolling, selected-state accessibility labels and Reduce Motion support. Manual VoiceOver and compact-device review remain pending.
 
-Required new verification includes state-transition tests, Off/0% pixel equivalence, localized glow/color fixtures, proportional preview/capture radii, frozen full-recipe capture and clean-original exclusion. Device profiling and interactive accessibility checks remain required. The existing 34 core and 7 renderer tests do not exercise this extension.
+The portable suite now passes 45 tests, including diffusion state and immutable-setting behavior. New Apple renderer and simulator UI tests cover bypass, glow locality/tint, resolution scaling, full-recipe capture, clean-copy exclusion and tray interactions; their CI results are pending. The earlier seven passing renderer tests establish the pre-F10 baseline only. Final mask/strength tuning, skin-tone and dark-scene review, latency, memory and thermal measurements remain physical-device work.
 
 ## LUT contract
 

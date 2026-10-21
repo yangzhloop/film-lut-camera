@@ -77,7 +77,7 @@ Open the generated project in Xcode and allow its local `LutliCore` package to r
 
 The first build and simulator startup can take several minutes. Simulator builds do not require a development signing team.
 
-You can explore the app menu, built-in look labels, preferences, and custom look management. A camera-unavailable message is expected when no camera is available; the simulator does not validate the live camera workflow.
+You can explore the app menu, built-in look labels, preferences, custom look management, and the Filters tray. Select HDF to adjust strength and glow color, or Black Mist to adjust neutral diffusion strength. A camera-unavailable message is expected when no camera is available; the simulator does not validate the live camera workflow.
 
 ## 5. Run on a physical iPhone
 
@@ -105,11 +105,11 @@ In Terminal, from the repository root:
 ./scripts/check-core.sh
 ```
 
-With Xcode configured, the helper uses the Mac's Swift compiler. These tests cover LUT parsing, channel ordering, intensity, label validation, custom-look limits and persistence. The current baseline has **34 core tests**.
+With Xcode configured, the helper uses the Mac's Swift compiler. These tests cover LUT parsing, channel ordering, intensity, label validation, custom-look limits persistence, and diffusion session state. The suite contains **45 core tests**.
 
-### iOS renderer integration tests
+### iOS renderer and interface tests
 
-In Xcode, select the **Lutli** scheme and an iPhone simulator, then choose **Product → Test**, or press **⌘U**. The current baseline has **7 iOS tests**, covering Core Image rendering, color profiles, capture recipes and image orientation.
+In Xcode, select the **Lutli** scheme and an iPhone simulator, then choose **Product → Test**, or press **⌘U**. The scheme includes **16 renderer tests** covering Core Image, diffusion, color profiles, frozen capture recipes and orientation, plus **3 UI tests** for the diffusion tray, state retention, fresh-launch reset and large text. See the validation record for executed results.
 
 To run the same iOS tests from Terminal, first list available simulators:
 
@@ -123,17 +123,20 @@ Replace `<available-simulator-UUID>` below with the UUID of an available iPhone 
 xcodebuild test \
   -project ios/Lutli.xcodeproj \
   -scheme Lutli \
+  -parallel-testing-enabled NO \
   -destination 'platform=iOS Simulator,id=<available-simulator-UUID>' \
   CODE_SIGNING_ALLOWED=NO
 ```
 
 `CODE_SIGNING_ALLOWED=NO` is for this simulator command. Physical-device builds need signing.
 
-The Xcode test scheme runs the iOS integration suite; run the core helper separately for the portable suite. See the [validation record](validation.md) for recorded results and the [GitHub Actions workflow](../.github/workflows/ci.yml) for automated checks.
+The Xcode test scheme runs the iOS integration and UI suites; run the core helper separately for the portable suite. See the [validation record](validation.md) for recorded results and the [GitHub Actions workflow](../.github/workflows/ci.yml) for automated checks.
 
 ## 7. Try the main workflows on your iPhone
 
 - Choose Original and several built-in labels, then change intensity and compare the live preview with a saved photo.
+- Open **Filters** beside EV/WB. Try HDF, change strength and glow color, then compare Black Mist. Close/reopen the tray and switch looks; the effect remains active. Off or 0% strength bypasses diffusion, while Look intensity controls only the LUT. A fresh app launch starts diffusion Off.
+- With **Save clean original** enabled, compare the filtered photo against its clean copy. The clean copy excludes both LUT grading and diffusion.
 - Adjust exposure and Auto, Lock or Manual white balance where the camera supports them. Try focus, available lenses, camera switching and flash.
 - Open **Your looks** using the smaller leading icon beside the scrolling labels. Import a compatible LUT from Files, edit both label sections and colors, save it, and select it on the camera.
 - Open the upper-right app menu. Try grid, timer, remembering the last look and saving a clean original. Capture a photo, check its save status, review it and share it.

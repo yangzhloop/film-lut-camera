@@ -2,7 +2,7 @@
 
 The current direction is a minimalist dark camera interface with restrained monochrome controls and colorful, two-section filter labels. This is a design baseline that can evolve during development, not a pixel-locked specification.
 
-The latest approved shooting design adds **Filters** beside EV and WB, with HDF and Black Mist diffusion controls. This extension is specified in [F10](feature-specification.md#f10--diffusion-filters-and-halation) and is **approved for implementation, not implemented yet**. The existing LUT camera, library and app-menu implementation remains the baseline.
+The latest approved shooting design adds **Filters** beside EV and WB, with HDF and Black Mist diffusion controls. This extension is specified in [F10](feature-specification.md#f10--diffusion-filters-and-halation), and its model, controls and rendering are now implemented in source. The [implementation plan](diffusion-implementation.md) tracks the integration and checks. New Apple-platform results, photographic quality/performance and manual accessibility review remain outstanding; the concept artwork is not proof of a validated interaction or render.
 
 ## Latest approved shooting concept
 
@@ -10,7 +10,7 @@ The latest approved shooting design adds **Filters** beside EV and WB, with HDF 
 
 This is the current shooting-screen reference, using the **lutli** wordmark. It supersedes the camera portion of the earlier navigation concept. The four states show the interaction, not four separate destinations: **Shoot → Choose → HDF**, with **Black Mist** as the alternative selection.
 
-The artwork is a static UI concept. The illustrated HDF 35% with Amber glow and Black Mist 20% are examples, not calibrated effects or validated first-use defaults. The image does not establish rendering accuracy, measured strength, or interactive behavior.
+The artwork is a static UI concept. The illustrated HDF 35% with Amber glow and Black Mist 20% are examples, not calibrated effects. The source implementation begins each app launch Off and uses HDF 35% with Neutral glow or Black Mist 20% on first selection as development tuning values. The image does not establish rendering accuracy, measured strength, or interactive behavior.
 
 ## Earlier references for app menu and label management
 
@@ -77,7 +77,7 @@ For this design, **HDF** means highlight diffusion with optional colored halatio
 
 Show a continuous **Strength** slider and its numeric percentage. Its accessible name is **HDF filter strength**. Percentages are creative effect amounts, not equivalences to physical optical-filter grades. At 0%, diffusion contributes no effect; show `HDF 0%` accurately while retaining the chosen mode and color.
 
-The Glow color row offers **Neutral**, **Amber**, **Rose**, **Red**, and **Custom (+)**. Neutral preserves the source-highlight color without an added tint. Custom opens a system color picker for an opaque color; strength controls the effect amount. Apply tint to the highlight glow, not the entire image.
+The Glow color row offers **Neutral**, **Amber**, **Rose**, **Red**, and **Custom (+)**. Neutral follows the highlight color after the selected LUT grade without adding a tint. Custom opens a system color picker for an opaque color; strength controls the effect amount. Apply tint to the highlight glow, not the entire image.
 
 Custom-color changes preview immediately. Dismissing that picker retains the current color, consistent with closing the diffusion tray; opening and dismissing it without an edit preserves the prior selection.
 
@@ -93,7 +93,7 @@ Black Mist combines neutral highlight bloom with gentle contrast softening. Show
 - Original and 0% Look intensity remove LUT grading only. A selected diffusion effect remains active until disabled separately. A fully ungraded, undiffused creative output uses Original with Filters Off.
 - Adjust the live preview immediately and freeze the complete LUT/diffusion recipe when the shutter fires. Later control changes must not alter an in-flight photo.
 - The optional clean-original copy excludes both the creative LUT and diffusion/halation. The ordinary filtered copy includes the selected combination.
-- Match the apparent glow size and strength across preview and full-resolution capture. The detailed spatial processing, color handling, first-use amounts and visual tuning remain implementation work; the concept illustration is not a reference pixel test.
+- Match the apparent glow size and strength across preview and full-resolution capture. The implementation extracts highlights before grading, composites glow after the LUT, and normalizes the soft effect layers while retaining the full-resolution base image. Development amounts and visual appearance still require photographic tuning; the concept illustration is not a reference pixel test.
 
 See [F10](feature-specification.md#f10--diffusion-filters-and-halation) for acceptance checks and the [roadmap](roadmap.md) for implementation and validation gates.
 
@@ -152,4 +152,4 @@ Exposure compensation belongs to the automatic-exposure workflow. Any later manu
 - Confirm that cancel/back navigation preserves the appropriate camera state and existing filter data.
 - Keep final label colors, spacing, and behavior adaptable as real-device testing reveals constraints.
 - Verify that expanding diffusion controls preserves preview framing and the positions of the look strip and shutter; check touch routing, Reduce Motion and large text.
-- Verify Off/0% behavior, separate look/effect strength, current-session restoration, and clear accessible effect/color selection. Diffusion checks remain pending implementation.
+- Verify Off/0% behavior, separate look/effect strength, current-session restoration, and clear accessible effect/color selection. The portable model tests pass; new Apple rendering/UI results and manual device/accessibility review remain to be recorded in the [validation record](../validation.md).

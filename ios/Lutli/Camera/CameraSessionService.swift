@@ -68,6 +68,10 @@ final class CameraSessionService: NSObject, AVCaptureVideoDataOutputSampleBuffer
         renderer.setLUT(lut)
     }
 
+    func setDiffusion(_ settings: DiffusionSettings) {
+        renderer.setDiffusion(settings)
+    }
+
     func setExposure(_ value: Double) {
         sessionQueue.async { [weak self] in
             guard let self else { return }

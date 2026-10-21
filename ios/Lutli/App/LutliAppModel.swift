@@ -59,6 +59,8 @@ final class LutliAppModel: ObservableObject {
     @Published private(set) var customLooks: [CustomLook] = []
     @Published private(set) var selection: LookSelection = .builtIn(.original)
     @Published private(set) var intensity: Double = 1
+    // Diffusion belongs to this app session, independently of persisted LUT looks.
+    @Published private(set) var diffusion = DiffusionState()
     @Published private(set) var isApplyingLook = false
     @Published private(set) var isLoadingLibrary = true
     @Published private(set) var libraryIssue: String?
@@ -202,6 +204,33 @@ final class LutliAppModel: ObservableObject {
             if let index = customLooks.firstIndex(where: { $0.id == id }) { customLooks[index].intensity = intensity }
         }
         camera.setLUT(selectedLUT.blended(intensity: intensity))
+    }
+
+    func selectDiffusion(_ effect: DiffusionEffect) {
+        guard countdown == nil, !camera.isCapturing, !isApplyingLook else { return }
+        var next = diffusion
+        next.select(effect)
+        applyDiffusion(next)
+    }
+
+    func setDiffusionStrength(_ value: Double) {
+        guard countdown == nil, !camera.isCapturing, !isApplyingLook else { return }
+        var next = diffusion
+        next.setStrength(value)
+        applyDiffusion(next)
+    }
+
+    func setDiffusionGlowColor(_ color: GlowColor) {
+        guard countdown == nil, !camera.isCapturing, !isApplyingLook else { return }
+        var next = diffusion
+        next.setGlowColor(color)
+        applyDiffusion(next)
+    }
+
+    private func applyDiffusion(_ next: DiffusionState) {
+        guard next != diffusion else { return }
+        diffusion = next
+        camera.setDiffusion(next.settings)
     }
 
     func persistIntensity() async {

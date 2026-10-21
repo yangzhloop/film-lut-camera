@@ -1,6 +1,6 @@
 # Lutli product plan
 
-Status: existing native implementation baseline plus an approved diffusion-filter addition. The detailed behavior and acceptance checks are in the [feature specification](feature-specification.md); sequencing and verification gates are in the [roadmap](roadmap.md). The latest Filters/HDF/Black Mist UI is approved design work and is not yet implemented.
+Status: native implementation including the Filters/HDF/Black Mist extension. The detailed behavior and acceptance checks are in the [feature specification](feature-specification.md); sequencing and verification gates are in the [roadmap](roadmap.md). Diffusion model, controls and rendering source are implemented, with 45 portable tests passed. New Apple-platform results, physical-device quality/performance and manual accessibility review remain outstanding; implementation does not establish release readiness.
 
 ## Product goal
 
@@ -12,7 +12,7 @@ Choose a film-inspired look, see it while composing a photograph, adjust the cam
 - Start with iOS; develop Android later. The user selected native iOS with SwiftUI.
 - Use a minimalist dark interface with the accepted camera-control placement. Refine the design as implementation and new features require it.
 - Include live film looks, bundled LUTs, limited custom LUT imports, white balance, exposure compensation, and look intensity.
-- Add a Filters control beside EV and WB, with horizontally arranged Off, HDF and Black Mist choices. HDF expands to strength and glow color; Black Mist expands to strength. This addition is specified in F10 and remains pending implementation.
+- Add a Filters control beside EV and WB, with horizontally arranged Off, HDF and Black Mist choices. HDF expands to strength and glow color; Black Mist expands to strength. This addition is specified in F10 and implemented in source, with validation tracked separately.
 - Represent each look with two stacked color sections, not a photographic thumbnail. Custom looks have independently editable top/bottom text and predefined colors.
 - The upper-right gear opens an app menu with detailed settings, feedback, About, and legal information.
 - A smaller leading icon in the horizontal filter strip opens Your looks. Importing or editing a look leads to Customize label.
@@ -30,8 +30,8 @@ The following choices resolve the earlier open proposals so implementation can p
 | LUT compatibility | 3D `.cube`, size 17 or 33, at most 8 MiB, standard SDR sRGB input/output, normalized domain. |
 | Label design | Two editable single-line sections, each with 1–12 characters and a shared predefined color palette. |
 | Look controls | Intensity from 0–100%, remembered independently for each look. |
-| Diffusion addition — pending | One effect at a time, combined with any LUT. HDF offers 0–100% strength and Neutral/Amber/Rose/Red/custom glow color; Black Mist offers 0–100% strength with neutral diffusion. |
-| Diffusion state — pending | Start each fresh app launch Off; retain effect settings during the app session across LUT/camera changes, tray closure and background/resume. Remember-last-look continues to govern LUT selection only. |
+| Diffusion controls | One effect at a time, combined with any LUT. HDF offers 0–100% strength and Neutral/Amber/Rose/Red/custom glow color; Black Mist offers 0–100% strength with neutral diffusion. Initial development values are HDF 35%/Neutral and Black Mist 20%, pending photographic tuning. |
+| Diffusion state | Start each fresh app launch Off; retain effect settings during the app session across LUT/camera changes, tray closure and background/resume. Remember-last-look continues to govern LUT selection only. |
 | White balance | Auto, Lock, and Manual temperature/tint, subject to actual camera capabilities. |
 | Exposure | Automatic exposure with exposure compensation within device-supported limits. |
 | Persistence | Remember the look and user preferences; exposure and WB remain session controls and reset for a fresh camera session. |
@@ -51,9 +51,11 @@ The latest [UI and navigation reference](ui-ux.md) uses **lutli** and adds diffu
 
 ## First-version boundary
 
-The existing implementation covers camera capture and LUT rendering, local look management, the initial UI/navigation, white balance/exposure controls, basic saving preferences, and app information screens. A clean original is a processed photograph without the creative look; it is not RAW.
+The implementation covers camera capture, LUT and diffusion rendering, local look management, the approved UI/navigation, white balance/exposure controls, basic saving preferences, and app information screens. A clean original is a processed photograph without either creative stage; it is not RAW.
 
-The approved next addition is **F10: diffusion filters and colored halation**. It combines the selected LUT with either HDF or Black Mist, keeping Look intensity separate from Filter strength. HDF's optional color applies to highlight glow; Black Mist provides neutral bloom and gentle contrast softening. A spatial rendering stage, immutable capture settings and preview/photo consistency are required. The clean-original option must exclude both the LUT and diffusion/halation. The concept's HDF 35% Amber and Black Mist 20% illustrate interaction states, not calibrated defaults.
+**F10: diffusion filters and colored halation** combines the selected LUT with either HDF or Black Mist, keeping Look intensity separate from Filter strength. HDF's optional color applies to highlight glow; Black Mist provides neutral bloom and gentle contrast softening. The implementation derives highlights from the ungraded source, then composites glow after LUT grading so chosen glow colors are preserved. Soft effect layers use a bounded working resolution while the base photograph retains its full capture resolution. Capture freezes the full recipe, and the clean-original option excludes both creative stages. See the [implementation plan](diffusion-implementation.md) for the contract and verification sequence.
+
+The concept's HDF 35% Amber and Black Mist 20% illustrate interaction states, not calibrated defaults. The code starts HDF at 35% with Neutral glow and Black Mist at 20% when first selected; device review may tune these initial values.
 
 Video, RAW/ProRAW, manual shutter/ISO, grain, effect stacking, saved recipes, editing existing photos, commercial features, accounts, cloud synchronization, and Android remain later milestones. The HDF/Black Mist scope above is now approved; other film texture effects still require separate decisions.
 
@@ -61,7 +63,7 @@ Video, RAW/ProRAW, manual shutter/ISO, grain, effect stacking, saved recipes, ed
 
 - iOS 17 is the initial deployment target. The supported device matrix and release-level compatibility still require Apple-platform validation.
 - Final bundled grades need photographic review across skin tones, lighting, and supported devices.
-- HDF and Black Mist need algorithm selection, LUT/effect ordering, first-use strengths, glow-color tuning, normalized bloom sizing, and image/performance validation before implementation can be called complete. The mockup does not establish these results.
+- HDF and Black Mist have an initial processing order, normalized bloom sizing and development defaults. They still need Apple rendering/UI verification, photographic review of glow colors and strengths, and physical-device image/performance measurements. The mockup and portable model tests do not establish those results.
 - Camera throughput, capture latency, thermal behavior, output color consistency, and accessibility require Apple-platform and physical-device verification.
 - Feedback destination, publisher identity, production legal copy, signing, distribution, and release metadata are not invented by the implementation.
 - Any change to the five-slot limit, supported LUT types, or deferred features should update the feature specification and acceptance checks together.

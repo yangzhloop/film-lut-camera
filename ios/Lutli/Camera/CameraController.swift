@@ -79,6 +79,10 @@ final class CameraController: ObservableObject {
         service.setLUT(cube)
     }
 
+    func setDiffusion(_ settings: DiffusionSettings) {
+        service.setDiffusion(settings)
+    }
+
     func setExposure(_ value: Double) {
         guard value.isFinite else { return }
         let clamped = min(max(value, exposureBounds.lowerBound), exposureBounds.upperBound)

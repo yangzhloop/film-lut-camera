@@ -20,7 +20,7 @@ jobs:
       - name: Run core tests
         run: swift test --parallel --jobs 4
   ios:
-    name: iOS simulator build and rendering tests
+    name: iOS build, rendering and UI tests
     runs-on: macos-15
     timeout-minutes: 20
     steps:
@@ -42,6 +42,7 @@ jobs:
           xcodebuild test \
             -project ios/Lutli.xcodeproj \
             -scheme Lutli \
+            -parallel-testing-enabled NO \
             -destination 'platform=iOS Simulator,id=${{ steps.simulator.outputs.id }}' \
             -derivedDataPath .build/ios-derived-data \
             -resultBundlePath .build/LutliTests.xcresult \

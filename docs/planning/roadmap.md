@@ -1,19 +1,19 @@
 # Development roadmap
 
-This roadmap implements the [product plan](product-plan.md) and [feature specification](feature-specification.md). The initial native iOS workflow is implemented in SwiftUI, builds on the Apple toolchain, and passes the portable-core and renderer integration tests. A milestone becomes validated only when its full exit evidence exists; interactive UI and physical-device checks remain separate requirements. There are no promised delivery dates.
+This roadmap implements the [product plan](product-plan.md) and [feature specification](feature-specification.md). The native iOS workflow is implemented in SwiftUI. The pre-F10 baseline passed its Apple build and renderer tests; the expanded diffusion implementation has separate verification gates below. A milestone becomes validated only when its full exit evidence exists, including the relevant interactive UI and physical-device checks. There are no promised delivery dates.
 
-The approved [diffusion-control design](ui-ux.md) adds F10 as the next implementation milestone, M4a. HDF, colored halation and Black Mist are specified but are not implemented or covered by the existing passing tests.
+The approved [diffusion-control design](ui-ux.md) is now implemented as M4a: session state, HDF/Black Mist rendering, the Filters tray and capture integration. The [implementation plan](diffusion-implementation.md) records the work and verification scope. All 45 portable core tests pass; native diffusion renderer/UI checks are pending CI, and physical-device tuning remains open.
 
 ## Milestone overview
 
 | Milestone | Scope | Dependency | Current evidence |
 | --- | --- | --- | --- |
 | M0 — Decisions and contracts | Framework, supported platform baseline, LUT contract, data model, build strategy | Product/UI baseline | Architecture recorded; build/test path documented |
-| M1 — Domain core | LUT parser, bundled looks, label validation, persistent collection, settings | M0 | Implemented; 34 core XCTest cases passed on Linux |
-| M2 — App interface | Camera layout, menu, library, import/editor, state feedback, accessibility | M0; M1 models | Implemented and compiled on Apple CI; interactive UI checks pending |
-| M3 — Camera and rendering | Live camera, LUT preview, exposure/WB, still capture and processing | M1; camera UI | Implemented; 7 Apple renderer tests passed; physical camera checks pending |
+| M1 — Domain core | LUT parser, bundled looks, label validation, persistent collection, settings | M0 | Implemented; current suite has 45 passing core XCTest cases, including diffusion state |
+| M2 — App interface | Camera layout, menu, library, import/editor, state feedback, accessibility | M0; M1 models | Baseline implemented and compiled on Apple CI; interactive UI checks pending; F10 extension tracked in M4a |
+| M3 — Camera and rendering | Live camera, LUT preview, exposure/WB, still capture and processing | M1; camera UI | Baseline implemented; 7 pre-F10 Apple renderer tests passed; physical camera checks pending |
 | M4 — End-to-end behavior | Saving/review, preferences, import/replace/delete, relaunch and error paths | M1–M3 | Source integrated; native end-to-end checks pending |
-| M4a — Diffusion controls | Filters tray, HDF strength/glow color, Black Mist strength, preview/capture integration | M1–M4 baseline | UI concept and feature scope approved; implementation and validation pending |
+| M4a — Diffusion controls | Filters tray, HDF strength/glow color, Black Mist strength, preview/capture integration | M1–M4 baseline | Source implemented; core tests passed; native renderer/UI CI and device validation pending |
 | M5 — Device and release validation | Apple builds, camera matrix, photographic quality, accessibility, release content | M4 and M4a | Not validated; release gates remain |
 | M6 — Android and later features | Android camera parity and separately approved additions | Stable iOS contracts | Deferred |
 
@@ -87,16 +87,16 @@ Exit evidence: documented end-to-end results, including failures and recovery. A
 
 ## M4a — Implement diffusion controls
 
-Feature coverage: F10, extending the F02/F04 rendering contract and the shooting interface. Status: approved design; no diffusion implementation or test evidence yet.
+Feature coverage: F10, extending the F02/F04 rendering contract and the shooting interface. Status: source implemented, portable state tests passed; Apple-platform and device validation remain separate gates. See the [diffusion implementation plan](diffusion-implementation.md).
 
-Tasks, in implementation order:
+Implemented:
 
-1. Define the effect model and render contract: Off, HDF or Black Mist; independent 0–100% effect strength; HDF glow color; and parameters needed to reproduce the render. Keep **Look intensity** separate from **Filter strength**. Off and 0% bypass only diffusion, while Original and 0% look intensity bypass only the creative LUT.
-2. Define session behavior. Start each fresh app launch with Off. Keep the active effect and each effect's settings through LUT/lens changes, closing the tray, temporary Off selection and background/foreground within the same app session. The existing remember-last-look preference must not silently restore diffusion across launches.
-3. Build the Filters shortcut beside EV and WB. Reveal the horizontal Off/HDF/Black Mist choices in a tray over the lower preview, then expand the tray upward for effect controls. Keep EV/WB, the LUT strip, look-intensity slider and shutter in place. Add current-effect feedback, accessible control names and a custom glow-color picker.
-4. Add a separate spatial processing stage for HDF highlight bloom with optional colored halation, and Black Mist neutral diffusion/contrast softening. Validate the highlight mask, glow tint, processing order relative to the LUT, color-space handling and normalized bloom radius. The concept's percentages are examples, not calibrated optical strengths.
-5. Integrate the full immutable recipe at shutter time: LUT/intensity, effect type/strength, glow color and required render parameters. Use the same processing contract for preview and full-resolution photos. The clean-original copy bypasses both the LUT and diffusion.
-6. Add meaningful model and image fixtures for bypass, effect switching, session restoration, highlight locality, color behavior, resolution scaling and in-flight capture isolation. Exercise the overlay on compact devices with text scaling and VoiceOver. Measure preview/capture latency, memory and thermal behavior on physical iPhones before tuning release defaults.
+1. `DiffusionState` and immutable `DiffusionSettings` represent Off, HDF or Black Mist, independent remembered strengths and named/custom HDF glow colors. **Look intensity** and **Filter strength** remain separate. Off and 0% bypass diffusion; Original and 0% look intensity bypass only the creative LUT.
+2. Effect settings live in app-session memory. A fresh launch starts with Off. LUT/lens changes, tray dismissal, Off/reselection and background/foreground retain the current session's settings. Remember-last-look does not restore diffusion across launches. HDF 35% with Neutral glow and Black Mist 20% are provisional development values awaiting photographic tuning.
+3. The Filters shortcut sits beside EV/WB. Its overlay has horizontal effect choices, a live strength slider and HDF presets/custom color. It expands upward without moving the preview geometry, toolbar, look strip or shutter. The controls include selected-state feedback, accessibility names, bounded scrolling and Reduce Motion handling.
+4. The spatial renderer applies the LUT first, extracts a highlight mask from the ungraded source's peak RGB component, then composites neutral or tinted glow over the graded base. Only soft-light/softening layers are reduced to a maximum 640-pixel long edge; the base photo remains full resolution. Spatial radii are proportional to image dimensions.
+5. The locked renderer recipe snapshots the blended LUT and diffusion settings together at shutter time. Updating the LUT preserves diffusion, and updating diffusion preserves the LUT. Preview and still rendering share this path; the clean-original JPEG bypasses both creative stages.
+6. New core, Apple pixel and simulator UI tests cover the feature's intended invariants and interactions. The portable suite has executed successfully; native tests are awaiting CI results. Test presence alone does not validate the rendered appearance or interface.
 
 Exit evidence:
 
@@ -105,7 +105,7 @@ Exit evidence:
 - Simulator/device interaction checks establish horizontal selection, expansion/collapse, custom-color picker dismissal, unobscured shutter access and stable control placement.
 - Physical-device comparisons establish the appearance of both effects across representative highlights, skin tones and dark scenes, with measured performance and any limitations recorded in the [validation record](../validation.md).
 
-Existing core and renderer test results do not satisfy these new exit gates. Additional diffusion types, effect stacking and saved effect recipes remain later scope.
+The 45 passing core tests provide state/model evidence. The earlier seven Apple renderer tests covered the pre-diffusion baseline and do not establish F10 rendering behavior. Native F10 CI, physical-camera comparisons, VoiceOver review and performance/thermal measurements remain pending. Additional diffusion types, effect stacking and saved effect recipes remain later scope.
 
 ## M5 — Release readiness
 
@@ -134,7 +134,7 @@ Video, RAW, manual shutter/ISO, grain, additional diffusion/halation treatments,
 | iOS source/project compiles | No | Xcode build on macOS |
 | Interface layout and navigation | Partly through model tests | Simulator/device UI run and accessibility review |
 | Camera controls and live LUT rendering | No | Physical iPhone with representative lighting |
-| Diffusion state and appearance (F10) | State rules only, once tests are implemented | New Apple pixel tests, interactive overlay checks and physical-device appearance/performance evidence |
+| Diffusion state and appearance (F10) | State rules are covered by the passing portable suite | Native pixel/UI CI pending; physical-device appearance, VoiceOver and performance evidence still required |
 | Photos saving, orientation, sharing | No | Apple-platform permission/error-path tests |
 | Android readiness | No | Separate Android application build/device validation |
 
@@ -142,4 +142,4 @@ The onboarding environment is Linux with a prepared Android toolchain. Its earli
 
 ## Current validation evidence
 
-See [the validation record](../validation.md) for the 34 passing core tests, successful iOS simulator build, 7 passing Apple-framework renderer tests, and remaining interactive/device checks. The initial validation found and corrected a CRLF `.cube` parsing issue and a missing app-icon asset. These results cover the implementation before F10. Next work includes M4a diffusion implementation, interactive UI and real-camera verification, followed by photographic tuning and release preparation.
+See [the validation record](../validation.md) for actual execution evidence. The current portable suite passes all 45 tests, including diffusion state. The earlier successful iOS build and seven Apple renderer tests establish the pre-F10 baseline; the expanded native renderer/UI suite is pending CI. The remaining work is Apple validation, interactive and real-camera verification, photographic tuning, VoiceOver review, performance measurements and release preparation.

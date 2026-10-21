@@ -5,7 +5,12 @@ import UIKit
 struct CameraScreen: View {
     @EnvironmentObject private var model: LutliAppModel
     @EnvironmentObject private var camera: CameraController
+    @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @ScaledMetric(relativeTo: .footnote) private var shortcutHeight: CGFloat = 44
+    @ScaledMetric(relativeTo: .caption) private var intensityHeight: CGFloat = 34
     @State private var sheet: CameraSheet?
+    @State private var showsDiffusion = false
 
     private enum CameraSheet: String, Identifiable {
         case looks, menu, exposure, whiteBalance, review
@@ -14,29 +19,47 @@ struct CameraScreen: View {
 
     var body: some View {
         GeometryReader { geometry in
-            let controlsHeight: CGFloat = 46 + 42 + 95 + 34 + 82
+            let controlsHeight: CGFloat = 46 + shortcutHeight + 95 + intensityHeight + 82
             let previewHeight = max(0, min(geometry.size.width * 4 / 3, geometry.size.height - controlsHeight))
             VStack(spacing: 0) {
                 toolbar
-                ZStack {
+                ZStack(alignment: .bottom) {
                     PreviewSurface(image: camera.isRunning && camera.authorization == .authorized ? camera.previewImage : nil, grid: model.showGrid) { point in
                         camera.tapFocus(normalized: point)
                     }
-                    if camera.previewImage == nil || !camera.isRunning || camera.authorization != .authorized { cameraAvailability }
+                    .allowsHitTesting(!showsDiffusion)
+                    .accessibilityIdentifier("camera.preview")
+                    if camera.previewImage == nil || !camera.isRunning || camera.authorization != .authorized {
+                        cameraAvailability
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .accessibilityHidden(showsDiffusion)
+                    }
                     if let remaining = model.countdown {
                         Text("\(remaining)")
                             .font(.system(size: 76, weight: .light, design: .rounded))
                             .shadow(radius: 12)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
                             .accessibilityLabel("Taking photo in \(remaining) seconds")
                     }
-                    VStack {
-                        Spacer()
+                    if showsDiffusion {
+                        // Consume the first outside tap: closing the tray must
+                        // not also move focus or exposure behind it.
+                        Color.clear
+                            .contentShape(Rectangle())
+                            .onTapGesture { setDiffusionVisible(false) }
+                            .accessibilityHidden(true)
+                        DiffusionControlsView(maximumHeight: max(0, previewHeight - 44)) {
+                            setDiffusionVisible(false)
+                        }
+                        .transition(reduceMotion ? .identity : .opacity)
+                    } else {
                         lensSelector
                             .padding(.bottom, 12)
                     }
                 }
                 .frame(height: previewHeight)
                 .background(.black)
+                .clipped()
                 controlShortcuts
                 lookStrip
                 intensityControl
@@ -46,6 +69,11 @@ struct CameraScreen: View {
         }
         .background(LutliTheme.background.ignoresSafeArea())
         .foregroundStyle(.white)
+        .onChange(of: scenePhase) { _, phase in
+            // Native color selection can briefly make the scene inactive.
+            // Collapse on background only so its live selection is retained.
+            if phase == .background { showsDiffusion = false }
+        }
         .sheet(item: $sheet) { destination in
             switch destination {
             case .looks: LooksLibraryView()
@@ -81,7 +109,7 @@ struct CameraScreen: View {
             Spacer()
             IconButton(systemName: "gearshape", label: "App menu") {
                 model.cancelCountdown()
-                sheet = .menu
+                present(.menu)
             }
         }
         .padding(.horizontal, 12)
@@ -154,20 +182,38 @@ struct CameraScreen: View {
     private var controlShortcuts: some View {
         HStack(spacing: 0) {
             Button {
-                sheet = .exposure
+                present(.exposure)
             } label: {
-                Label(String(format: "EV %+.1f", camera.exposure), systemImage: "plusminus.circle")
-                    .frame(maxWidth: .infinity, minHeight: 42)
+                shortcutLabel("EV", value: String(format: "%+.1f", camera.exposure), symbol: "plusminus.circle")
+                    .frame(maxWidth: .infinity, minHeight: shortcutHeight)
+                    .contentShape(Rectangle())
             }
+            .accessibilityLabel("Exposure compensation")
+            .accessibilityValue(String(format: "%+.1f EV", camera.exposure))
             .disabled(!camera.isRunning || camera.exposureBounds.lowerBound == camera.exposureBounds.upperBound)
             Rectangle().fill(.white.opacity(0.2)).frame(width: 1, height: 18)
-            Button { sheet = .whiteBalance } label: {
-                Label(whiteBalanceTitle, systemImage: "sun.max")
-                    .frame(maxWidth: .infinity, minHeight: 42)
+            Button { present(.whiteBalance) } label: {
+                shortcutLabel("WB", value: whiteBalanceTitle, symbol: "sun.max")
+                    .frame(maxWidth: .infinity, minHeight: shortcutHeight)
+                    .contentShape(Rectangle())
             }
+            .accessibilityLabel("White balance")
+            .accessibilityValue(whiteBalanceTitle)
             .disabled(!camera.isRunning)
+            Rectangle().fill(.white.opacity(0.2)).frame(width: 1, height: 18)
+            Button { setDiffusionVisible(!showsDiffusion) } label: {
+                diffusionShortcut
+                    .frame(maxWidth: .infinity, minHeight: shortcutHeight)
+                    .contentShape(Rectangle())
+            }
+            .accessibilityLabel("Diffusion filters")
+            .accessibilityValue(diffusionAccessibilityValue)
+            .accessibilityHint(showsDiffusion ? "Closes filter controls" : "Opens filter controls")
+            .accessibilityIdentifier("diffusion.toggle")
+            .disabled(model.isApplyingLook)
         }
         .font(.footnote)
+        .frame(height: shortcutHeight)
         .buttonStyle(.plain)
         .disabled(model.countdown != nil || camera.isCapturing)
         .overlay(alignment: .bottom) { Divider().overlay(.white.opacity(0.08)) }
@@ -175,17 +221,87 @@ struct CameraScreen: View {
 
     private var whiteBalanceTitle: String {
         switch camera.whiteBalance {
-        case .auto: return "WB Auto"
-        case .locked: return "WB Lock"
-        case .manual(let temperature, _): return "WB \(Int(temperature)) K"
+        case .auto: return "Auto"
+        case .locked: return "Lock"
+        case .manual(let temperature, _): return "\(Int(temperature)) K"
         }
+    }
+
+    private func shortcutLabel(_ title: String, value: String, symbol: String) -> some View {
+        ViewThatFits(in: .horizontal) {
+            Label("\(title) \(value)", systemImage: symbol).fixedSize()
+            Text("\(title) \(value)").fixedSize()
+            VStack(spacing: 0) {
+                Text(title)
+                Text(value)
+            }
+            .lineLimit(1)
+            .minimumScaleFactor(0.7)
+        }
+        .padding(.horizontal, 4)
+    }
+
+    private var diffusionShortcut: some View {
+        let name = model.diffusion.effect == .hdf ? "HDF" : "Mist"
+        let percentage = "\(Int((model.diffusion.strength * 100).rounded()))%"
+        return HStack(spacing: 4) {
+            if model.diffusion.effect == .hdf {
+                Circle().fill(model.diffusion.glowColor.displayColor)
+                    .frame(width: 7, height: 7)
+                    .accessibilityHidden(true)
+            }
+            if model.diffusion.effect == .off {
+                ViewThatFits(in: .horizontal) {
+                    Label("Filters Off", systemImage: "camera.filters").fixedSize()
+                    Text("Filters Off").fixedSize()
+                    VStack(spacing: 0) {
+                        Text("Filters")
+                        Text("Off")
+                    }
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+                }
+            } else {
+                ViewThatFits(in: .horizontal) {
+                    Text("\(name) \(percentage)").fixedSize()
+                    VStack(spacing: 0) {
+                        Text(name)
+                        Text(percentage)
+                    }
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+                }
+            }
+            Image(systemName: showsDiffusion ? "chevron.down" : "chevron.up")
+                .font(.system(size: 9, weight: .semibold))
+                .accessibilityHidden(true)
+        }
+        .padding(.horizontal, 4)
+    }
+
+    private var diffusionAccessibilityValue: String {
+        guard model.diffusion.effect != .off else { return "Off" }
+        let percentage = Int((model.diffusion.strength * 100).rounded())
+        let effect = "\(model.diffusion.effect.displayName), \(percentage)%"
+        return model.diffusion.effect == .hdf ? "\(effect), \(model.diffusion.glowColor.label)" : effect
+    }
+
+    private func setDiffusionVisible(_ visible: Bool) {
+        withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.18)) {
+            showsDiffusion = visible
+        }
+    }
+
+    private func present(_ destination: CameraSheet) {
+        showsDiffusion = false
+        sheet = destination
     }
 
     private var lookStrip: some View {
         HStack(spacing: 10) {
             IconButton(systemName: "rectangle.on.rectangle", label: "Your looks") {
                 model.cancelCountdown()
-                sheet = .looks
+                present(.looks)
             }
             Rectangle().fill(.white.opacity(0.25)).frame(width: 1, height: 54)
             ScrollViewReader { proxy in
@@ -202,13 +318,15 @@ struct CameraScreen: View {
                                     .frame(width: 73, height: 79)
                             }
                             .buttonStyle(.plain)
+                            .accessibilityIdentifier("camera.look.\(item.id.id)")
                             .id(item.id)
                         }
                     }
                     .padding(.trailing, 12)
                 }
+                .accessibilityIdentifier("camera.lookStrip")
                 .onChange(of: model.selection) { _, selection in
-                    withAnimation(.easeInOut(duration: 0.2)) { proxy.scrollTo(selection, anchor: .center) }
+                    withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.2)) { proxy.scrollTo(selection, anchor: .center) }
                 }
             }
         }
@@ -219,24 +337,25 @@ struct CameraScreen: View {
 
     private var intensityControl: some View {
         HStack(spacing: 12) {
-            Text("Intensity").font(.caption)
+            Text("Look intensity").font(.caption).lineLimit(1).minimumScaleFactor(0.7)
             Slider(value: Binding(get: { model.intensity }, set: model.setIntensity), in: 0...1) { editing in
                 if !editing { model.persistCurrentIntensity() }
             }
-            .accessibilityLabel("Filter intensity")
+            .accessibilityLabel("Look intensity")
             .accessibilityValue("\(Int(model.intensity * 100)) percent")
+            .accessibilityIdentifier("camera.lookIntensity")
             Text("\(Int(model.intensity * 100))%")
                 .font(.caption.monospacedDigit())
                 .frame(width: 35, alignment: .trailing)
         }
         .padding(.horizontal, 20)
-        .frame(height: 34)
+        .frame(height: intensityHeight)
         .disabled(model.selection == .builtIn(.original) || model.isApplyingLook || model.countdown != nil || camera.isCapturing)
     }
 
     private var captureControls: some View {
         HStack {
-            Button { sheet = .review } label: {
+            Button { present(.review) } label: {
                 Group {
                     if let photo = camera.latestCapture {
                         Image(decorative: photo.image, scale: 1).resizable().scaledToFill()
@@ -268,6 +387,7 @@ struct CameraScreen: View {
             }
             .buttonStyle(.plain)
             .accessibilityLabel(model.countdown != nil ? "Cancel timer" : "Take photo")
+            .accessibilityIdentifier("camera.shutter")
             .disabled(!camera.isRunning || camera.isCapturing || camera.isSaving || model.isApplyingLook || model.isLoadingLibrary)
             .opacity(camera.isRunning ? 1 : 0.4)
             Spacer()

@@ -2,7 +2,7 @@
 
 **lutli** is an iOS-first camera app for live film-inspired LUT looks, adjustable white balance/exposure, and a small collection of custom looks with editable two-color labels.
 
-The repository contains the initial native implementation in **SwiftUI + AVFoundation + Core Image**, a portable Swift core, tests, and the detailed product/development plan. Android is a later milestone. The built-in color grades are original starter LUTs awaiting photographic tuning.
+The repository contains the native implementation in **SwiftUI + AVFoundation + Core Image**, including the HDF/Black Mist diffusion extension, a portable Swift core, tests, and the detailed product/development plan. Android is a later milestone. The built-in color grades and diffusion parameters await photographic tuning on physical devices.
 
 ## Develop on macOS
 
@@ -30,7 +30,7 @@ Portable domain tests:
 swift test --parallel --jobs 4
 ```
 
-The helper uses a local Swift compiler when present, otherwise the official `swift:6.1.3-noble` Docker image. Docker may need to download that image on its first run. Tests cover LUT parsing, channel ordering, intensity, labels, library limits, persistence, replacement/deletion and failed writes.
+The helper uses a local Swift compiler when present, otherwise the official `swift:6.1.3-noble` Docker image. Docker may need to download that image on its first run. Tests cover LUT parsing, channel ordering, intensity, labels, library limits, persistence, replacement/deletion, failed writes, and diffusion settings/session transitions.
 
 Apple-framework tests, after generating the project:
 
@@ -43,23 +43,26 @@ xcodebuild test \
   CODE_SIGNING_ALLOWED=NO
 ```
 
-`ios/LutliTests` covers Core Image identity/channel behavior, frozen capture recipes, embedded color profiles, and image orientation. `.github/workflows/ci.yml` defines separate portable-core and macOS/iOS jobs. A configured workflow is not evidence of a passing run; see the [validation record](docs/validation.md) for what has actually been checked.
+`ios/LutliTests` includes Core Image identity/channel, diffusion, frozen capture recipe, embedded color-profile, and orientation checks. `ios/LutliUITests` includes diffusion-tray interaction checks. `.github/workflows/ci.yml` defines separate portable-core and macOS/iOS jobs. Test source and a configured workflow do not establish a passing run; see the [validation record](docs/validation.md) for actual results.
 
 ## Included workflows
 
 - Live LUT preview, still capture, supported camera/lens switching, focus, flash, exposure compensation and white balance.
 - Original plus six generated looks, per-look intensity, and a fixed library button before the horizontally scrolling filter labels.
+- HDF and Black Mist diffusion with separate effect strength, HDF preset/custom glow colors, and an expanding Filters tray beside EV/WB.
 - Five custom LUT slots with import, replace, delete, and independent top/bottom label text and colors.
 - Capture review/share, optional clean original, grid/timer/haptics preferences and remembered look selection.
 - App menu with settings, feedback composition, About, and clearly identified development legal copy.
 
 Imports support standard SDR sRGB 3D `.cube` files with sizes **17 or 33**, normalized domains and samples, up to **8 MiB**. Arbitrary Log/HDR LUTs are not automatically made compatible. Numbers printed on filter labels are decorative text, not camera ISO.
 
-## Approved next feature: diffusion controls
+## Diffusion controls
 
 The [latest UI/UX concept](docs/planning/ui-ux.md#latest-approved-shooting-concept) adds **Filters** beside EV and WB. A horizontal chooser offers Off, HDF and Black Mist. HDF expands to strength and glow-color controls; Black Mist offers neutral diffusion strength. One effect combines with the selected LUT, with separate Look intensity and Filter strength controls.
 
-This design and [F10 feature specification](docs/planning/feature-specification.md#f10--diffusion-filters-and-halation) are approved; the tray and diffusion rendering are **not implemented yet**. The existing 34 core and 7 iOS renderer tests validate the current LUT implementation. New diffusion checks are planned in the [roadmap](docs/planning/roadmap.md).
+The [F10 feature specification](docs/planning/feature-specification.md#f10--diffusion-filters-and-halation) now has source implementations for the model, controls and rendering. Each fresh launch starts with diffusion Off. HDF initially uses 35% with Neutral glow and Black Mist uses 20%; these are development tuning values, not calibrated optical-filter equivalents.
+
+The portable suite passes **45 tests**, including the diffusion model. New Apple build, renderer and UI results remain to be recorded; earlier Apple results cover the preceding LUT-only implementation. Physical-device appearance, performance and manual accessibility review remain required. See the [diffusion implementation plan](docs/planning/diffusion-implementation.md), [roadmap](docs/planning/roadmap.md) and [validation record](docs/validation.md).
 
 ## Product and engineering documents
 
@@ -67,6 +70,7 @@ This design and [F10 feature specification](docs/planning/feature-specification.
 - [Detailed feature specification and acceptance checks](docs/planning/feature-specification.md)
 - [UI/navigation and reviewed mockups](docs/planning/ui-ux.md)
 - [Development roadmap](docs/planning/roadmap.md)
+- [Diffusion implementation plan](docs/planning/diffusion-implementation.md)
 - [Native architecture](docs/architecture/native-ios.md)
 - [Validation record and remaining device checks](docs/validation.md)
 

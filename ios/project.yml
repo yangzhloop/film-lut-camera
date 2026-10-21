@@ -75,18 +75,32 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.lutli.camera.tests
         GENERATE_INFOPLIST_FILE: YES
+  LutliUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: LutliUITests
+    dependencies:
+      - target: Lutli
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.lutli.camera.uitests
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_TARGET_NAME: Lutli
 schemes:
   Lutli:
     build:
       targets:
         Lutli: all
         LutliTests: [test]
+        LutliUITests: [test]
     run:
       config: Debug
     test:
       config: Debug
       targets:
         - LutliTests
+        - LutliUITests
       gatherCoverageData: true
     archive:
       config: Release

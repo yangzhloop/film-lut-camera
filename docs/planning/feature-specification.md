@@ -2,7 +2,7 @@
 
 This is the actionable first-version specification for Lutli. It expands the approved concept with working defaults needed for implementation. Native iOS uses SwiftUI, AVFoundation, and Core Image with an iOS 17 deployment target. Domain logic lives in the portable `LutliCore` Swift package. Requirements describe intended behavior; they do not claim that code has been implemented or validated. See the [roadmap](roadmap.md) for evidence gates.
 
-F01–F09 describe the existing implementation baseline, with device and end-to-end acceptance checks still outstanding. **F10 is an approved addition to the product and UI design; its controls and rendering are not implemented.** Cross-references to F10 below describe the behavior required when that addition is built. The [latest UI concept](ui-ux.md) shows the approved interaction.
+F01–F09 describe the initial implementation baseline. **F10 now has source implementations for its model, controls and rendering.** The portable suite passes 45 tests, including diffusion model checks; new Apple rendering/UI results and physical-device acceptance remain outstanding. The [latest UI concept](ui-ux.md) shows the approved interaction, and the [implementation plan](diffusion-implementation.md) records the development sequence. See the [validation record](../validation.md) for executed evidence rather than inferring completion from these requirements.
 
 ## F01 — Camera and session lifecycle
 
@@ -153,7 +153,7 @@ Acceptance:
 
 ## F10 — Diffusion filters and halation
 
-**Status: approved design; not implemented or validated.** This feature extends the LUT camera with spatial light effects. The approved mockup is an interaction reference, not a calibrated example of the rendering algorithm.
+**Status: model, controls and renderer implemented in source; Apple-platform and physical-device validation pending.** The portable model is covered by the passing 45-test core suite. This feature extends the LUT camera with spatial light effects. The approved mockup is an interaction reference, not a calibrated example of the rendering algorithm.
 
 ### Effect selection and controls
 
@@ -170,9 +170,9 @@ Acceptance:
 
 - HDF means highlight diffusion in this product. Its colored halation is a creative treatment; do not promise an exact physical-filter or film-stock simulation. Color selection changes highlight glow, not the entire photograph's tint.
 - Present a continuous strength slider with its current percentage. Percentages describe creative effect amount, not an equivalence to physical filter densities such as 1/8 or 1/4. At 0%, bypass the effect while preserving the selected LUT and remembered settings.
-- Glow-color swatches include a selection ring/checkmark and an accessible color name. **Neutral** adds no halo tint and preserves the source highlight's color. A **+** swatch opens the system color picker for a custom color. Color choices are opaque and strength controls the effect amount, so this picker has no separate opacity control. This palette is independent of the Top/Bottom label-color palette.
+- Glow-color swatches include a selection ring/checkmark and an accessible color name. **Neutral** adds no halo tint and follows the highlight's color after the selected LUT grade. A **+** swatch opens the system color picker for a custom color. Color choices are opaque and strength controls the effect amount, so this picker has no separate opacity control. This palette is independent of the Top/Bottom label-color palette.
 - Custom-color changes preview immediately. Dismissing the color picker retains the current color; dismissing it without an edit preserves the prior selection.
-- The illustrated HDF 35% with Amber and Black Mist 20% are presentation examples. First-use strengths, final color values, bloom shape and tonal response require photographic tuning; they are not validated rendering defaults.
+- The illustrated HDF 35% with Amber and Black Mist 20% are presentation examples. The initial implementation uses **HDF 35% with Neutral** and **Black Mist 20%** when first selected. These development defaults, preset colors, bloom shape and tonal response require photographic tuning; they are not calibrated rendering defaults.
 - Controls update the live result immediately. Closing the tray or tapping outside it preserves the selected effect and settings; choosing Off disables diffusion. A closed tray must not look equivalent to a disabled effect.
 - Keep touch targets at least 44 points, readable values, and accessible selected states. Touches within the tray must not also trigger focus on the image beneath it. Opening EV, WB or another destination closes the diffusion tray while preserving its settings. Hide lens controls when the tray would cover them and restore them on close.
 
@@ -185,11 +185,11 @@ Acceptance:
 - Apply the same effect definition and settings to live preview and the captured still. Normalize the spatial glow size to image dimensions so preview and full-resolution output have comparable appearance. Preserve the existing color-profile, orientation and output contract.
 - Generate the optional clean original from the same capture without either LUT grading or diffusion/halation. Review/share and Photos save states continue to follow F04.
 
-### Rendering and planned acceptance checks
+### Rendering and acceptance checks
 
-Diffusion spreads light across neighboring pixels and therefore requires a spatial rendering stage beyond a LUT. Determine and document the LUT/effect processing order, highlight extraction, color blending and bloom-size mapping during implementation and photographic comparison. Keep processing off the UI thread and retain bounded preview delivery. These algorithm choices and device performance remain unvalidated.
+The implementation adds a spatial rendering stage beyond the LUT. Highlight extraction uses the ungraded source, while the glow is composited after LUT grading so custom/preset tint is not subsequently changed by that LUT. Neutral HDF and Black Mist derive light color from the graded photograph. Soft glow/contrast layers are limited to a 640-pixel long edge; the base image retains its full capture resolution. Blur radii scale relative to image dimensions, and the result is cropped back to the original extent. Off and 0% follow the unchanged LUT-only path. The full recipe is frozen at shutter time, and the clean copy branches before both creative stages.
 
-The following checks are planned; the existing core and renderer test results do not cover F10:
+These are initial artistic algorithm choices that still require Apple image tests and photographic comparison. Keep processing off the UI thread and retain bounded preview delivery. The following acceptance checks distinguish the passing portable model tests from Apple/UI/device evidence still to be recorded:
 
 - **UI:** open Filters, select HDF, adjust amount and color, select Black Mist, close and reopen, and choose Off. The toolbar and shutter stay reachable; Black Mist exposes no HDF-only controls. Check small screens, large text, VoiceOver, focus hit testing and tray dismissal.
 - **State:** only one effect is active; closing and Off/reselection preserve settings within the app session. LUT/camera changes and background/resume preserve them. A fresh launch starts Off regardless of remember-last-look.
