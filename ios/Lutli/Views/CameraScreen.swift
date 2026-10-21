@@ -14,7 +14,8 @@ struct CameraScreen: View {
 
     var body: some View {
         GeometryReader { geometry in
-            let previewHeight = max(180, min(geometry.size.width * 4 / 3, geometry.size.height - 279))
+            let controlsHeight: CGFloat = 46 + 42 + 95 + 34 + 82
+            let previewHeight = max(0, min(geometry.size.width * 4 / 3, geometry.size.height - controlsHeight))
             VStack(spacing: 0) {
                 toolbar
                 ZStack {

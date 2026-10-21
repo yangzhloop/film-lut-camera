@@ -15,14 +15,14 @@ jobs:
     runs-on: ubuntu-latest
     container: swift:6.1.3-noble
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Run core tests
         run: swift test --parallel --jobs 4
   ios:
     name: iOS simulator build and rendering tests
     runs-on: macos-15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Install project generator
         run: brew install xcodegen
       - name: Generate Xcode project
@@ -34,16 +34,33 @@ jobs:
           echo "id=$device_id" >> "$GITHUB_OUTPUT"
       - name: Build and run iOS integration tests
         run: |
+          mkdir -p .build
+          set +e
+          set -o pipefail
           xcodebuild test \
             -project ios/Lutli.xcodeproj \
             -scheme Lutli \
             -destination 'platform=iOS Simulator,id=${{ steps.simulator.outputs.id }}' \
             -derivedDataPath .build/ios-derived-data \
             -resultBundlePath .build/LutliTests.xcresult \
-            CODE_SIGNING_ALLOWED=NO
-      - uses: actions/upload-artifact@v4
+            CODE_SIGNING_ALLOWED=NO 2>&1 | tee .build/xcodebuild.log
+          build_status=${PIPESTATUS[0]}
+          if [ "$build_status" -ne 0 ]; then
+            python3 - <<'PY'
+          from pathlib import Path
+          lines = Path('.build/xcodebuild.log').read_text(errors='replace').splitlines()
+          failures = [line for line in lines if any(marker in line.lower() for marker in ['error:', 'fatal error', 'testing failed', 'failed to build'])]
+          message = '\n'.join(failures or lines[-40:])[:12000]
+          escaped = message.replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A')
+          print(f'::error title=Xcode build or test failure::{escaped}')
+          PY
+          fi
+          exit "$build_status"
+      - uses: actions/upload-artifact@v5
         if: always()
         with:
           name: ios-test-results
-          path: .build/LutliTests.xcresult
+          path: |
+            .build/LutliTests.xcresult
+            .build/xcodebuild.log
           if-no-files-found: ignore
