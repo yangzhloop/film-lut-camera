@@ -8,6 +8,8 @@ The repository contains the initial native implementation in **SwiftUI + AVFound
 
 Requirements: macOS, **Xcode 16 or newer**, Xcode command-line tools, and [XcodeGen](https://github.com/yonaskolb/XcodeGen). The first target is iPhone on iOS 17+, in portrait orientation.
 
+Follow the [macOS setup and testing guide](docs/macos-development.md) for cloning the implementation branch, simulator and iPhone setup, signing, tests, and troubleshooting.
+
 ```bash
 brew install xcodegen
 ./scripts/ios-bootstrap.sh
