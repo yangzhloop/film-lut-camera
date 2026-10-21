@@ -4,6 +4,10 @@
 
 The repository contains the native implementation in **SwiftUI + AVFoundation + Core Image**, including the HDF/Black Mist diffusion extension, a portable Swift core, tests, and the detailed product/development plan. Android is a later milestone. The built-in color grades and diffusion parameters await photographic tuning on physical devices.
 
+## Try the interactive UI
+
+Download and open [the standalone HTML prototype](docs/prototype/lutli.html) in a browser to try the latest camera interface, HDF/Black Mist, look library, LUT import and two-color label editor. It works offline with a sample scene; camera controls and browser effects are illustrative. See [prototype instructions](prototypes/lutli/README.md) for the flows, limitations and source files.
+
 ## Develop on macOS
 
 Requirements: macOS, **Xcode 16 or newer**, Xcode command-line tools, and [XcodeGen](https://github.com/yonaskolb/XcodeGen). The first target is iPhone on iOS 17+, in portrait orientation.

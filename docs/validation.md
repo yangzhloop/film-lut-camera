@@ -37,6 +37,16 @@ The [Filters tray](planning/ui-ux.md) and [F10 feature scope](planning/feature-s
 
 Synthetic pixel and simulator interaction tests do not establish photographic quality or live-camera performance. The base photo remains full resolution; only blurred spatial layers are capped at 640 pixels on the longest edge. Preview and capture use the same proportional radii and render recipe.
 
+## Interactive HTML prototype
+
+The [standalone browser prototype](prototype/lutli.html) is built from [the prototype sources](../prototypes/lutli/README.md). On 2026-10-21, **36 Playwright/Chromium browser checks passed** against the generated file, with no page JavaScript errors or external network requests.
+
+Coverage includes HDF/Black Mist selection and retained settings; custom glow; separate LUT strength; EV/WB values; library import, invalid files, five-slot capacity and deletion; two-color labels and cancel confirmation; frozen sample captures and actual JPEG downloads; fresh-session reset; mouse-wheel/arrow-key look navigation; and keyboard focus. Desktop layouts at 1366×1000 and 1366×768 and phone layouts at 390×844 and 320×700 kept the shutter reachable and stationary while the diffusion tray opened. Representative screenshots were visually reviewed; [the HDF preview](prototype/preview.png) records the desktop layout.
+
+Synthetic browser pixel checks passed for exact Off/0% bypass, localized red HDF glow with unchanged distant shadows, neutral Black Mist, and imported LUT RGB-channel interpolation. These validate the browser illustration only, not parity with the native Core Image output.
+
+Checks used a temporary local HTTP server because this environment's browser policy blocks `file://` navigation. The delivered HTML embeds all scripts, styles, icons and the sample image and makes no external requests; a server is not an application dependency. Direct-file launch on the user's own browser, Safari/Firefox behavior and full manual accessibility review have not been exercised here. Prototype state lasts only for the open tab and is separate from the native app's persistence and camera implementation.
+
 ## Required Apple/device checks
 
 - Exercise the remaining interactive UI flows on Simulator and physical iPhones; the three automated diffusion flows above cover only their stated scope.

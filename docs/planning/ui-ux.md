@@ -4,6 +4,10 @@ The current direction is a minimalist dark camera interface with restrained mono
 
 The latest approved shooting design adds **Filters** beside EV and WB, with HDF and Black Mist diffusion controls. This extension is specified in [F10](feature-specification.md#f10--diffusion-filters-and-halation), and its model, controls and rendering are implemented. The Apple build, 45 portable tests, 16 renderer tests and 3 simulator UI tests passed. The [implementation plan](diffusion-implementation.md) tracks the integration and checks, and the [validation record](../validation.md) identifies their scope. Photographic quality/performance, manual custom-color-picker interaction and VoiceOver/accessibility review remain outstanding; neither the concept nor the selected automated UI flows establish complete UI validation.
 
+## Interactive browser prototype
+
+[Open the standalone HTML prototype](../prototype/lutli.html) after downloading it, or see the [usage and editing guide](../../prototypes/lutli/README.md). It implements the latest navigation and control flows with a sample scene, local `.cube` imports, label customization and downloadable sample captures. Browser effects illustrate the interactions; they are not evidence of native image quality or camera behavior. Session changes are discarded on reload.
+
 ## Latest approved shooting concept
 
 ![Lutli shooting interface in four states: Filters off, horizontal filter choices, HDF strength and glow color, and Black Mist strength](assets/diffusion-controls-concept.png)

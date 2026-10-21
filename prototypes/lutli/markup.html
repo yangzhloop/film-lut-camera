@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#eeeae2">
+  <meta name="description" content="An interactive, offline preview of Lutli's film-look camera, diffusion filters and custom LUT labels.">
+  <title>lutli — a little light, your own look</title>
+  <style>/* INLINE_STYLES */</style>
+</head>
+<body>
+<svg class="icon-definitions" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs>
+  <symbol id="i-flash" viewBox="0 0 24 24"><path d="m13 2-9 12h7l-1 8 10-13h-8l1-7Z"/><path d="m3 3 18 18"/></symbol>
+  <symbol id="i-settings" viewBox="0 0 24 24"><path d="m9 3 1-1h4l1 3 3 1 3 1v4l-2 2-1 3-1 3h-4l-2-2-3-1-3-1v-4l2-2 1-3Z"/><circle cx="12" cy="11" r="3"/></symbol>
+  <symbol id="i-library" viewBox="0 0 24 24"><rect x="3" y="3" width="12" height="14" rx="2"/><rect x="9" y="8" width="12" height="14" rx="2" fill="currentColor" stroke="none"/><rect x="9" y="8" width="12" height="14" rx="2" fill="#101210"/></symbol>
+  <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></symbol>
+  <symbol id="i-back" viewBox="0 0 24 24"><path d="m14 5-7 7 7 7"/></symbol>
+  <symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M6 18 18 6"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5"/></symbol>
+  <symbol id="i-ev" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m6 18 12-12M8 7v4m-2-2h4m5 7h4"/></symbol>
+  <symbol id="i-filters" viewBox="0 0 24 24"><circle cx="12" cy="8" r="5"/><circle cx="8" cy="15" r="5"/><circle cx="16" cy="15" r="5"/></symbol>
+  <symbol id="i-switch" viewBox="0 0 24 24"><path d="M3 9a9 9 0 0 1 16-3l2 3m0-6v6h-6M21 15a9 9 0 0 1-16 3l-2-3m0 6v-6h6"/></symbol>
+  <symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8" cy="8" r="1.5"/><path d="m3 17 6-6 4 4 3-3 5 5"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 16V3m-5 5 5-5 5 5M4 15v5h16v-5"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+  <symbol id="i-edit" viewBox="0 0 24 24"><path d="m15 4 5 5M4 20l5-1L21 7l-4-4L5 15l-1 5Z"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 6h16M9 6V3h6v3M6 6l1 15h10l1-15M10 10v7m4-7v7"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v12m-5-5 5 5 5-5M4 17v4h16v-4"/></symbol>
+</defs></svg>
+<div class="workspace">
+  <header class="site-header"><a class="brand" href="#" aria-label="Lutli home">lutli<span class="brand-dot">.</span></a><span class="edition">THE CAMERA, REIMAGINED</span><span class="prototype-badge"><span></span>Interactive prototype</span></header>
+  <main class="experience">
+    <section class="introduction" aria-labelledby="experience-title">
+      <p class="eyebrow"><span class="small-rule"></span>A LITTLE LIGHT. YOUR OWN LOOK.</p>
+      <h1 id="experience-title">Find your<br>kind of <em>light.</em></h1>
+      <p class="intro-copy">A film-inspired camera with a feeling of its own.<br>Try a look, soften the light, make it yours.</p>
+      <div class="tour-list" aria-label="Explore the prototype">
+        <button class="tour-card" data-tour="diffusion"><span class="tour-number">01</span><span><strong>Shape the light</strong><small>HDF, halation &amp; Black Mist</small></span><svg class="icon" aria-hidden="true"><use href="#i-chevron"/></svg></button>
+        <button class="tour-card" data-tour="looks"><span class="tour-number">02</span><span><strong>Find your look</strong><small>Film labels, without the guesswork</small></span><svg class="icon" aria-hidden="true"><use href="#i-chevron"/></svg></button>
+        <button class="tour-card" data-tour="label"><span class="tour-number">03</span><span><strong>Make it yours</strong><small>Your LUT. Your colors. Your label.</small></span><svg class="icon" aria-hidden="true"><use href="#i-chevron"/></svg></button>
+      </div>
+      <div class="demo-actions"><button id="load-scene" class="quiet-button"><svg class="icon" aria-hidden="true"><use href="#i-image"/></svg>Try your photo</button><span aria-hidden="true">/</span><button id="reset-demo" class="quiet-button">Reset demo</button></div>
+      <p class="prototype-note">A sample scene, not a live camera. Visual effects are illustrative.<br>Photos and LUTs stay on your device. This demo keeps edits for this tab only.</p>
+    </section>
+    <section class="device-stage" aria-label="Interactive Lutli app">
+      <div class="device-shadow"></div>
+      <div class="phone"><div class="phone-screen" id="phone-screen">
+        <div class="status-bar" aria-hidden="true"><span>9:41</span><span class="dynamic-island"></span><span class="status-indicators"><span class="signal">▂▄▆</span><span>◒</span><span class="battery"></span></span></div>
+        <section id="shoot-screen" class="shoot-screen" aria-label="Shoot">
+          <header class="app-header"><button id="flash-toggle" class="icon-button" aria-label="Flash off, demo control"><svg class="icon"><use href="#i-flash"/></svg></button><span class="app-wordmark">lutli</span><button id="menu-open" class="icon-button" aria-label="App menu"><svg class="icon"><use href="#i-settings"/></svg></button></header>
+          <div id="scene-area" class="scene-area">
+            <canvas id="scene-canvas" width="720" height="960" role="img" aria-label="Sample photo with your selected look and diffusion"></canvas>
+            <img id="scene-source" src="<!-- SCENE_DATA -->" alt="" hidden>
+            <div id="scene-loading" class="scene-loading">Finding the light…</div>
+            <div class="scene-caption">SAMPLE SCENE</div>
+            <div id="grid-overlay" class="grid-overlay" hidden aria-hidden="true"></div>
+            <div id="focus-ring" class="focus-ring" hidden aria-hidden="true"></div>
+            <div id="capture-flash" class="capture-flash" aria-hidden="true"></div>
+            <div id="countdown" class="countdown" hidden aria-live="polite"></div>
+            <div id="lens-row" class="lens-row" role="group" aria-label="Sample scene zoom"><button data-zoom="1" aria-pressed="true">1×</button><button data-zoom="2" aria-pressed="false">2×</button></div>
+            <section id="diffusion-tray" class="control-tray" aria-label="Diffusion filters" hidden>
+              <div class="tray-top"><div class="effect-choices" role="group" aria-label="Diffusion type"><button data-effect="off" aria-pressed="true">Off</button><button data-effect="hdf" aria-pressed="false">HDF</button><button data-effect="blackMist" aria-pressed="false">Black Mist</button></div><button data-close-tray class="icon-button" aria-label="Close filter controls"><svg class="icon"><use href="#i-close"/></svg></button></div>
+              <div id="effect-details" class="tray-details" hidden><div class="range-heading"><label for="effect-strength">Strength</label><output id="effect-strength-value" for="effect-strength">35%</output></div><input id="effect-strength" type="range" min="0" max="100" value="35" aria-label="Filter strength"><div class="range-scale" aria-hidden="true"><span>0</span><span>100</span></div><div id="glow-controls" class="glow-controls"><div class="range-heading"><span>Glow color</span><span id="glow-name" class="muted">Neutral</span></div><div class="glow-palette" role="group" aria-label="HDF glow color"><button class="glow-swatch" data-glow="neutral" style="--swatch:#eee8d5" aria-label="Neutral glow" aria-pressed="true"></button><button class="glow-swatch" data-glow="amber" style="--swatch:#f4b86a" aria-label="Amber glow" aria-pressed="false"></button><button class="glow-swatch" data-glow="rose" style="--swatch:#efa5aa" aria-label="Rose glow" aria-pressed="false"></button><button class="glow-swatch" data-glow="red" style="--swatch:#df655b" aria-label="Red glow" aria-pressed="false"></button><label class="custom-glow" title="Custom glow color"><span aria-hidden="true">+</span><input id="custom-glow" type="color" value="#ffaa6e" aria-label="Custom glow color"></label></div></div></div>
+            </section>
+            <section id="ev-tray" class="control-tray" aria-label="Exposure compensation" hidden><div class="tray-top"><h2>Exposure</h2><button data-close-tray class="icon-button" aria-label="Close exposure controls"><svg class="icon"><use href="#i-close"/></svg></button></div><div class="tray-details"><div class="range-heading"><label for="ev-slider">Exposure compensation</label><output id="ev-value">0.0 EV</output></div><input id="ev-slider" type="range" min="-2" max="2" step="0.1" value="0"><div class="range-scale"><span>−2</span><button id="ev-reset">Reset</button><span>+2</span></div></div></section>
+            <section id="wb-tray" class="control-tray" aria-label="White balance" hidden><div class="tray-top"><h2>White balance</h2><button data-close-tray class="icon-button" aria-label="Close white balance controls"><svg class="icon"><use href="#i-close"/></svg></button></div><div class="tray-details"><div id="wb-mode" class="segmented" role="group" aria-label="White balance mode"><button data-wb="auto" aria-pressed="true">Auto</button><button data-wb="locked" aria-pressed="false">Lock</button><button data-wb="manual" aria-pressed="false">Manual</button></div><div id="wb-manual" hidden><div class="range-heading"><label for="temperature">Temperature</label><output id="temperature-value">5500 K</output></div><input id="temperature" type="range" min="2500" max="8500" step="100" value="5500"><div class="range-heading"><label for="tint">Tint</label><output id="tint-value">0</output></div><input id="tint" type="range" min="-50" max="50" value="0"></div></div></section>
+          </div>
+          <div class="control-shortcuts"><button id="ev-toggle" aria-expanded="false" aria-controls="ev-tray"><svg class="icon"><use href="#i-ev"/></svg><span>EV <b id="ev-summary">0.0</b></span></button><button id="wb-toggle" aria-expanded="false" aria-controls="wb-tray"><svg class="icon"><use href="#i-sun"/></svg><span>WB <b id="wb-summary">Auto</b></span></button><button id="filters-toggle" aria-expanded="false" aria-controls="diffusion-tray"><svg class="icon filter-symbol"><use href="#i-filters"/></svg><span id="filter-dot" class="filter-dot" hidden></span><span id="filter-summary">Filters Off</span><span class="tiny-chevron" aria-hidden="true">⌃</span></button></div>
+          <div class="looks-row"><button id="library-open" class="icon-button library-entry" aria-label="Your looks"><svg class="icon"><use href="#i-library"/></svg></button><div id="look-strip" class="look-strip" role="group" aria-label="Film looks"></div></div>
+          <div class="look-intensity"><label for="look-intensity">Look intensity</label><input id="look-intensity" type="range" min="0" max="100" value="100"><output id="look-intensity-value" for="look-intensity">100%</output></div>
+          <div class="capture-controls"><button id="review-open" class="thumbnail-button" aria-label="Review last sample capture" disabled><svg class="icon"><use href="#i-image"/></svg></button><button id="shutter" class="shutter" aria-label="Capture sample photo"><span></span></button><button id="camera-switch" class="icon-button" aria-label="Switch sample camera view"><svg class="icon"><use href="#i-switch"/></svg></button></div>
+        </section>
+        <section id="library-screen" class="app-screen" aria-label="Your looks" hidden><header class="screen-header"><button class="icon-button" data-back="camera" aria-label="Back to camera"><svg class="icon"><use href="#i-back"/></svg></button><h2>Your looks</h2><span class="header-spacer"></span></header><div class="screen-content"><p class="screen-intro">A little collection. A lot of character.</p><div id="library-tabs" class="segmented" role="group" aria-label="Look collection"><button data-library-tab="builtin" aria-pressed="true">Built-in</button><button data-library-tab="custom" aria-pressed="false">My LUTs</button></div><div class="collection-heading"><span id="library-help">Made for the moments in between.</span><span id="slot-count"></span></div><div id="library-grid" class="look-grid"></div><div id="library-empty" class="empty-state" hidden><svg class="icon"><use href="#i-library"/></svg><h3>A look that's all you.</h3><p>Bring your own LUT, then give it a label<br>that feels like you.</p></div><p id="library-error" class="form-error" role="alert" hidden></p><div class="import-actions"><button id="import-lut" class="primary-button"><svg class="icon"><use href="#i-plus"/></svg>Import .cube LUT</button><button id="demo-look" class="secondary-button">Try with a demo LUT</button><p class="helper-text">5 custom slots · 17³ or 33³ · SDR sRGB · up to 8 MiB<br>Prototype imports stay in this tab until reload.</p></div></div></section>
+        <section id="editor-screen" class="app-screen" aria-label="Customize label" hidden><header class="screen-header"><button id="cancel-label" class="icon-button" aria-label="Cancel label editing"><svg class="icon"><use href="#i-back"/></svg></button><h2 id="editor-title">Customize label</h2><span class="header-spacer"></span></header><div class="screen-content editor-content"><p class="screen-intro">Give your look a little personality.</p><div class="label-preview-wrap"><div id="label-preview" class="film-label label-preview"><span id="preview-top" class="label-top">DAYLIGHT</span><span id="preview-bottom" class="label-bottom">400</span></div></div><div class="editor-section"><label class="field-label" for="top-text"><span>Top section</span><small>1–12 characters</small></label><input id="top-text" class="text-input" type="text" value="DAYLIGHT" autocomplete="off" spellcheck="false"><div id="top-palette" class="palette" role="group" aria-label="Top section color"></div></div><div class="editor-section"><label class="field-label" for="bottom-text"><span>Bottom section</span><small>1–12 characters</small></label><input id="bottom-text" class="text-input" type="text" value="400" autocomplete="off" spellcheck="false"><div id="bottom-palette" class="palette" role="group" aria-label="Bottom section color"></div></div><p id="editor-error" class="form-error" role="alert" hidden></p><button id="save-label" class="primary-button">Save look</button><p class="helper-text">Your label is your signature. Numbers don't set ISO.</p></div></section>
+        <section id="menu-screen" class="app-screen" aria-label="App menu" hidden><header class="screen-header"><button class="icon-button" data-back="camera" aria-label="Close app menu"><svg class="icon"><use href="#i-close"/></svg></button><h2>App menu</h2><span class="header-spacer"></span></header><div class="screen-content"><div class="menu-brand">lutli<span>.</span></div><p class="menu-tagline">A little light. Your own look.</p><div class="menu-group"><h3>SETTINGS</h3><button data-info="camera">Camera &amp; saving<svg class="icon"><use href="#i-chevron"/></svg></button><button data-info="preferences">App preferences<svg class="icon"><use href="#i-chevron"/></svg></button></div><div class="menu-group"><h3>SUPPORT</h3><button data-info="feedback">Send feedback<svg class="icon"><use href="#i-chevron"/></svg></button><button data-info="about">About Lutli<svg class="icon"><use href="#i-chevron"/></svg></button></div><div class="menu-group"><h3>LEGAL</h3><button data-info="terms">Terms &amp; conditions<svg class="icon"><use href="#i-chevron"/></svg></button><button data-info="privacy">Privacy policy<svg class="icon"><use href="#i-chevron"/></svg></button></div><p class="helper-text">Interactive concept · 0.1<br>Designed to be felt, then refined.</p></div></section>
+        <section id="info-screen" class="app-screen" aria-label="App information" hidden><header class="screen-header"><button class="icon-button" data-back="menu" aria-label="Back to app menu"><svg class="icon"><use href="#i-back"/></svg></button><h2 id="info-title">Settings</h2><span class="header-spacer"></span></header><div id="info-body" class="screen-content"></div></section>
+        <section id="review-screen" class="app-screen" aria-label="Sample photo review" hidden><header class="screen-header"><button class="icon-button" data-back="camera" aria-label="Back to camera"><svg class="icon"><use href="#i-back"/></svg></button><h2>Your frame</h2><span class="header-spacer"></span></header><div class="screen-content review-content"><img id="capture-image" alt="Your captured sample photo"><p id="capture-recipe" class="capture-recipe"></p><p id="review-empty" hidden>No sample captured yet.</p><button id="download-photo" class="primary-button"><svg class="icon"><use href="#i-download"/></svg>Download sample JPEG</button><button id="download-original" class="secondary-button" hidden>Download clean original</button><p class="helper-text">A sample capture from this browser preview.<br>Your iOS app saves real camera photos.</p></div></section>
+        <div class="home-indicator" aria-hidden="true"></div>
+        <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+      </div></div>
+      <div class="device-caption"><span class="live-dot"></span>Try it. Every look starts with a little curiosity.</div>
+    </section>
+  </main>
+  <footer class="site-footer"><span>lutli / interface study 01</span><span>Made for the moments in between.</span><span>iOS first. Yours to explore.</span></footer>
+</div>
+<input id="lut-file" type="file" accept=".cube" hidden><input id="scene-file" type="file" accept="image/*" hidden>
+<dialog id="confirm-dialog" class="confirm-dialog"><h2 id="confirm-title">Discard changes?</h2><p id="confirm-description">Your unsaved changes will be lost.</p><div class="dialog-actions"><button id="confirm-cancel" class="secondary-button">Keep editing</button><button id="confirm-accept" class="primary-button">Discard</button></div></dialog>
+<noscript><p class="noscript-message">Enable JavaScript to explore the interactive prototype. Everything runs locally in your browser.</p></noscript>
+<script>/* INLINE_RENDERER */</script>
+<script>/* INLINE_APP */</script>
+</body>
+</html>
