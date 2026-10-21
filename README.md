@@ -55,6 +55,12 @@ xcodebuild test \
 
 Imports support standard SDR sRGB 3D `.cube` files with sizes **17 or 33**, normalized domains and samples, up to **8 MiB**. Arbitrary Log/HDR LUTs are not automatically made compatible. Numbers printed on filter labels are decorative text, not camera ISO.
 
+## Approved next feature: diffusion controls
+
+The [latest UI/UX concept](docs/planning/ui-ux.md#latest-approved-shooting-concept) adds **Filters** beside EV and WB. A horizontal chooser offers Off, HDF and Black Mist. HDF expands to strength and glow-color controls; Black Mist offers neutral diffusion strength. One effect combines with the selected LUT, with separate Look intensity and Filter strength controls.
+
+This design and [F10 feature specification](docs/planning/feature-specification.md#f10--diffusion-filters-and-halation) are approved; the tray and diffusion rendering are **not implemented yet**. The existing 34 core and 7 iOS renderer tests validate the current LUT implementation. New diffusion checks are planned in the [roadmap](docs/planning/roadmap.md).
+
 ## Product and engineering documents
 
 - [Product plan](docs/planning/product-plan.md)
@@ -64,4 +70,4 @@ Imports support standard SDR sRGB 3D `.cube` files with sizes **17 or 33**, norm
 - [Native architecture](docs/architecture/native-ios.md)
 - [Validation record and remaining device checks](docs/validation.md)
 
-This is an initial implementation, not a release-ready camera. Physical-device camera/rendering checks, photographic tuning, accessibility review, final legal/publisher details, app icon/release assets, and distribution configuration remain required before release. The earlier static mockups retain their former STILL wordmark; the implemented app uses Lutli.
+This is an initial implementation, not a release-ready camera. Physical-device camera/rendering checks, photographic tuning, accessibility review, final legal/publisher details, app icon/release assets, and distribution configuration remain required before release. The latest shooting concept and implemented app use Lutli; the retained older menu/library and label-editor artwork still shows its former STILL wordmark.

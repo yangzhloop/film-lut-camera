@@ -18,6 +18,21 @@ The first core test run caught incorrect handling of CRLF line endings in `.cube
 
 Apple validation is recorded in [GitHub Actions run 39642652108](https://github.com/yangzhloop/film-lut-camera/actions/runs/39642652108), against application/workflow commit `a714744`. The iOS job reported 7 executed tests with zero failures in approximately 8 seconds. The earlier native build identified a missing `AppIcon` catalog; a development icon was added before the successful run. This validates the app build and renderer integration, not interactive UI behavior or a physical camera.
 
+## Approved F10 diffusion extension: validation pending
+
+The [updated UI concept](planning/ui-ux.md) and [F10 feature scope](planning/feature-specification.md) approve a Filters tray with HDF strength/glow color and Black Mist strength. This is a design/documentation update. The app's diffusion controls and spatial effects have not been implemented, and the 34 core and 7 iOS tests above do not cover them. The concept's HDF 35% and Black Mist 20% examples do not establish calibrated effect strength or measured image quality.
+
+The following evidence is required during [M4a](planning/roadmap.md), with results recorded only after actual execution:
+
+| Planned check | Current result | Required evidence |
+| --- | --- | --- |
+| Effect model and session transitions | Not implemented or run | One active effect; separate look/effect strengths; fresh-launch Off; remembered settings within a session; independence from remember-last-look |
+| Overlay interaction and accessibility | Not implemented or run | Horizontal choices, HDF expansion, custom-color picker dismissal, stable preview/control placement, reachable shutter, text scaling and VoiceOver |
+| Off and 0% bypass | Not implemented or run | Pixel comparison against the existing LUT-only path; active diffusion remains independent of Original/0% look intensity |
+| HDF and Black Mist rendering | Not implemented or run | Highlight/edge fixtures and photographs establishing localized colored halos, neutral Black Mist, preserved dark areas, valid color handling and clipping behavior |
+| Preview/capture consistency and capture snapshot | Not implemented or run | Proportional glow size at different resolutions; unchanged in-flight output after effect edits; clean-original JPEG excludes both creative stages |
+| Physical-device quality and performance | Not run | Representative lighting, skin tones and highlights; camera/lens switching; latency, memory, thermal measurements and recorded limits |
+
 ## Required Apple/device checks
 
 - Exercise the complete interactive UI flows on Simulator and physical iPhones.

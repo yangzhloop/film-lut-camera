@@ -2,6 +2,8 @@
 
 This is the actionable first-version specification for Lutli. It expands the approved concept with working defaults needed for implementation. Native iOS uses SwiftUI, AVFoundation, and Core Image with an iOS 17 deployment target. Domain logic lives in the portable `LutliCore` Swift package. Requirements describe intended behavior; they do not claim that code has been implemented or validated. See the [roadmap](roadmap.md) for evidence gates.
 
+F01–F09 describe the existing implementation baseline, with device and end-to-end acceptance checks still outstanding. **F10 is an approved addition to the product and UI design; its controls and rendering are not implemented.** Cross-references to F10 below describe the behavior required when that addition is built. The [latest UI concept](ui-ux.md) shows the approved interaction.
+
 ## F01 — Camera and session lifecycle
 
 - Open on the camera screen with the `lutli` wordmark, gear/menu entry, live preview, shooting controls, look strip, intensity, shutter, and last-capture entry.
@@ -21,9 +23,9 @@ Acceptance:
 
 - Include Original plus six original developer color/tone looks. The first implementation uses procedural starter LUTs; photographic tuning and approval remain a release gate. Initial identities are Warm 400, Soft 200, Chrome 100, Fade 400, Night 800, and Mono 800; the final assets may be tuned without changing stable look identifiers.
 - Built-in looks are available offline, cannot consume custom slots, and cannot be deleted or overwritten by imported files.
-- Place Original first among selectable filters, after the separate leading library button. Original bypasses the creative LUT.
+- Place Original first among selectable looks, after the separate leading library button. Original bypasses the creative LUT. With F10, it does not disable a separately selected diffusion effect.
 - Select a look by tapping its two-section label. Use a visible outline and an accessible selected state; do not duplicate labels with photographic thumbnails.
-- Provide an intensity control from 0–100%. At 0%, the creative look has no effect. Remember intensity by look identifier.
+- Provide an intensity control from 0–100%. At 0%, the creative LUT has no effect. Remember intensity by look identifier. F10 labels this control **Look intensity** to distinguish it from diffusion **Filter strength**.
 - Use a consistent standard SDR sRGB color contract for preview and photo rendering. Configure image orientation and camera output deliberately; do not treat an arbitrary incoming pixel buffer as already compatible.
 - Use the same LUT and blend strength for preview and capture. Keep rendering work off the UI thread, reuse resources, and discard obsolete preview frames instead of accumulating latency.
 
@@ -31,12 +33,12 @@ Acceptance:
 
 - An identity LUT preserves representative colors within defined numerical tolerances; nonidentity fixtures change the expected channels.
 - Changing one look's intensity does not alter another look's remembered value.
-- Original and 0% intensity produce the ungraded creative output.
+- Original and 0% Look intensity bypass the creative LUT. With F10, a separately active diffusion effect still applies; a fully untreated creative output requires diffusion Off or 0% as well.
 - The saved look and preview are compared on actual supported devices; a pure parser test does not validate this behavior.
 
 ## F03 — Exposure and white balance
 
-- Keep EV and WB shortcuts visible below the preview, including their current values/modes.
+- Keep EV and WB shortcuts visible below the preview, including their current values/modes. F10 adds Filters alongside them without removing these shortcuts while its tray is open.
 - EV adjusts automatic exposure within the device's reported bounds. Clamp requests before applying them and display the accepted value.
 - WB offers Auto, Lock, and Manual when supported. Lock freezes the current measured balance; Manual offers temperature and tint controls clamped to valid device gains.
 - Moving a manual WB control selects Manual mode. Auto returns control to the camera. Unsupported adjustments are disabled with a concise explanation.
@@ -50,8 +52,8 @@ Acceptance:
 
 ## F04 — Capture, saving, and review
 
-- Capture a full-resolution still supported by the current camera, using the look and intensity selected at the instant of capture.
-- Render a filtered JPEG. When Save clean original is enabled, generate a second JPEG from that same capture before applying the creative look.
+- Capture a full-resolution still supported by the current camera, using the look and intensity selected at the instant of capture. F10 extends that immutable recipe to the diffusion type, strength and HDF glow color.
+- Render a filtered JPEG. When Save clean original is enabled, generate a second JPEG from that same capture before applying the creative look. With F10, the clean copy excludes both the LUT grade and diffusion/halation while retaining the camera's exposure and white balance; it is not RAW.
 - Request Photos add permission when needed. Do not request broad library read access just to save or review the app's most recent capture.
 - Keep the recent capture available for review/share while the app owns its temporary output. Clearly distinguish a rendered image from a successful Photos save.
 - Update the thumbnail only with a successfully generated result. Provide a visible confirmation when saved and an actionable error if rendering, permissions, storage, or saving fails.
@@ -61,7 +63,7 @@ Acceptance:
 Acceptance:
 
 - One shutter action produces the expected filtered photo, plus one clean copy only when requested.
-- Changing looks after pressing the shutter cannot change the in-flight photograph's look.
+- Changing looks after pressing the shutter cannot change the in-flight photograph's look. With F10, later diffusion adjustments cannot change that photograph's effect either.
 - Denied Photos access and a failed save do not display a false success message.
 - Orientation, front-camera mirroring, crop, and color are checked on device, with any preview/capture differences recorded.
 
@@ -139,6 +141,7 @@ Acceptance:
 
 - Persist preferences and apply changes on returning to the camera.
 - If remember-last-look is off, select Original on the next fresh session. This does not delete saved looks or their intensities.
+- Remember-last-look applies to LUT selection only. F10 starts each fresh app launch with diffusion Off; this preference must not silently restore diffusion settings across launches.
 - A timer shows a visible countdown and can be canceled. Camera switching, leaving the camera, or interruption cancels a pending countdown.
 - No account or network service is required for the initial capture and custom-look workflow.
 
@@ -147,6 +150,53 @@ Acceptance:
 - Preferences survive relaunch and control the corresponding behavior.
 - Feedback cannot be reported as sent before the user completes the system flow.
 - Legal routes do not pretend that placeholder development content is finalized policy.
+
+## F10 — Diffusion filters and halation
+
+**Status: approved design; not implemented or validated.** This feature extends the LUT camera with spatial light effects. The approved mockup is an interaction reference, not a calibrated example of the rendering algorithm.
+
+### Effect selection and controls
+
+- Add **Filters** as the third shooting-toolbar control beside EV and WB. The collapsed control initially shows **Filters Off**. An active effect shows its type and amount, such as **HDF 35%** with a small glow-color indicator, or **Mist 20%**.
+- Tapping Filters opens a compact overlay tray at the lower edge of the preview. Its first row contains horizontally arranged **Off**, **HDF**, and **Black Mist** choices plus a close control. When Off is selected, show this chooser alone; reopening an active effect opens its controls directly beneath the chooser. More choices may scroll horizontally if needed on compact layouts.
+- Selecting HDF or Black Mist applies that effect and expands the same tray upward to reveal its controls. Preserve the preview's bounds and framing and the positions of EV/WB, the LUT strip, Look intensity, and the shutter. The tray may temporarily cover the preview's lower portion; it must not push shooting controls off screen.
+- Keep one diffusion effect active at a time. Each effect works alongside any built-in or custom LUT, including Original, and does not consume a custom LUT slot.
+
+| Mode | Intended appearance | Exposed controls |
+| --- | --- | --- |
+| Off | No diffusion or halation; the selected LUT still applies | No effect adjustments |
+| HDF | Highlight diffusion with optional colored halation localized around bright sources and edges | Filter strength, 0–100%; Glow color: Neutral, Amber, Rose, Red, or custom color |
+| Black Mist | Neutral highlight bloom and gentle contrast softening, retaining useful shadow and subject detail | Filter strength, 0–100%; no HDF glow-color controls |
+
+- HDF means highlight diffusion in this product. Its colored halation is a creative treatment; do not promise an exact physical-filter or film-stock simulation. Color selection changes highlight glow, not the entire photograph's tint.
+- Present a continuous strength slider with its current percentage. Percentages describe creative effect amount, not an equivalence to physical filter densities such as 1/8 or 1/4. At 0%, bypass the effect while preserving the selected LUT and remembered settings.
+- Glow-color swatches include a selection ring/checkmark and an accessible color name. **Neutral** adds no halo tint and preserves the source highlight's color. A **+** swatch opens the system color picker for a custom color. Color choices are opaque and strength controls the effect amount, so this picker has no separate opacity control. This palette is independent of the Top/Bottom label-color palette.
+- Custom-color changes preview immediately. Dismissing the color picker retains the current color; dismissing it without an edit preserves the prior selection.
+- The illustrated HDF 35% with Amber and Black Mist 20% are presentation examples. First-use strengths, final color values, bloom shape and tonal response require photographic tuning; they are not validated rendering defaults.
+- Controls update the live result immediately. Closing the tray or tapping outside it preserves the selected effect and settings; choosing Off disables diffusion. A closed tray must not look equivalent to a disabled effect.
+- Keep touch targets at least 44 points, readable values, and accessible selected states. Touches within the tray must not also trigger focus on the image beneath it. Opening EV, WB or another destination closes the diffusion tray while preserving its settings. Hide lens controls when the tray would cover them and restore them on close.
+
+### State and capture behavior
+
+- Start each fresh app launch with diffusion **Off**. Keep each effect's most recent strength and HDF color in memory during the current app session, including after closing the tray, choosing Off, selecting another effect, opening a menu, or backgrounding and resuming the app.
+- Diffusion is session-wide, independent of per-look intensity. Switching LUTs, choosing Original, editing a label, or switching camera/lens does not reset the active effect or its settings. Relaunch restoration of diffusion and saved effect recipes are outside this addition.
+- Keep **Look intensity** and **Filter strength** independent. Neither control overwrites the other. Selecting a different diffusion effect replaces the active effect while retaining the inactive effect's settings for reselection.
+- Snapshot the selected LUT, Look intensity, diffusion type, Filter strength, and glow color together at the shutter action. A later edit must not change an in-flight capture.
+- Apply the same effect definition and settings to live preview and the captured still. Normalize the spatial glow size to image dimensions so preview and full-resolution output have comparable appearance. Preserve the existing color-profile, orientation and output contract.
+- Generate the optional clean original from the same capture without either LUT grading or diffusion/halation. Review/share and Photos save states continue to follow F04.
+
+### Rendering and planned acceptance checks
+
+Diffusion spreads light across neighboring pixels and therefore requires a spatial rendering stage beyond a LUT. Determine and document the LUT/effect processing order, highlight extraction, color blending and bloom-size mapping during implementation and photographic comparison. Keep processing off the UI thread and retain bounded preview delivery. These algorithm choices and device performance remain unvalidated.
+
+The following checks are planned; the existing core and renderer test results do not cover F10:
+
+- **UI:** open Filters, select HDF, adjust amount and color, select Black Mist, close and reopen, and choose Off. The toolbar and shutter stay reachable; Black Mist exposes no HDF-only controls. Check small screens, large text, VoiceOver, focus hit testing and tray dismissal.
+- **State:** only one effect is active; closing and Off/reselection preserve settings within the app session. LUT/camera changes and background/resume preserve them. A fresh launch starts Off regardless of remember-last-look.
+- **Bypass:** Off and 0% produce the same creative output as the selected LUT alone. Original and 0% Look intensity preserve independently active diffusion. Use numerical tolerances appropriate to the renderer rather than visual guesses.
+- **Image behavior:** HDF color changes are localized to highlight glow; Black Mist remains neutral. Compare bright point sources, skin, deep shadows, clipped highlights and mixed lighting, including at the strength endpoints.
+- **Capture:** changing effect, strength or color after the shutter cannot alter the captured recipe. Compare equivalent preview/full-resolution framing and relative halo size. Verify that the optional clean copy excludes both creative stages.
+- **Performance and recovery:** profile latency, memory and thermal behavior on the supported device matrix. Exercise repeated adjustments, camera switching and interruptions without unbounded frame accumulation or false save-success states.
 
 ## External release gates
 

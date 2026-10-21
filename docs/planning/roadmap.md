@@ -2,6 +2,8 @@
 
 This roadmap implements the [product plan](product-plan.md) and [feature specification](feature-specification.md). The initial native iOS workflow is implemented in SwiftUI, builds on the Apple toolchain, and passes the portable-core and renderer integration tests. A milestone becomes validated only when its full exit evidence exists; interactive UI and physical-device checks remain separate requirements. There are no promised delivery dates.
 
+The approved [diffusion-control design](ui-ux.md) adds F10 as the next implementation milestone, M4a. HDF, colored halation and Black Mist are specified but are not implemented or covered by the existing passing tests.
+
 ## Milestone overview
 
 | Milestone | Scope | Dependency | Current evidence |
@@ -11,7 +13,8 @@ This roadmap implements the [product plan](product-plan.md) and [feature specifi
 | M2 — App interface | Camera layout, menu, library, import/editor, state feedback, accessibility | M0; M1 models | Implemented and compiled on Apple CI; interactive UI checks pending |
 | M3 — Camera and rendering | Live camera, LUT preview, exposure/WB, still capture and processing | M1; camera UI | Implemented; 7 Apple renderer tests passed; physical camera checks pending |
 | M4 — End-to-end behavior | Saving/review, preferences, import/replace/delete, relaunch and error paths | M1–M3 | Source integrated; native end-to-end checks pending |
-| M5 — Device and release validation | Apple builds, camera matrix, photographic quality, accessibility, release content | M4 | Not validated; release gates remain |
+| M4a — Diffusion controls | Filters tray, HDF strength/glow color, Black Mist strength, preview/capture integration | M1–M4 baseline | UI concept and feature scope approved; implementation and validation pending |
+| M5 — Device and release validation | Apple builds, camera matrix, photographic quality, accessibility, release content | M4 and M4a | Not validated; release gates remain |
 | M6 — Android and later features | Android camera parity and separately approved additions | Stable iOS contracts | Deferred |
 
 ## M0 — Implementation decisions and contracts
@@ -82,12 +85,35 @@ Tasks:
 
 Exit evidence: documented end-to-end results, including failures and recovery. All first-version acceptance checks are mapped to unit, integration, UI, or device checks; unrun categories stay visibly unrun.
 
+## M4a — Implement diffusion controls
+
+Feature coverage: F10, extending the F02/F04 rendering contract and the shooting interface. Status: approved design; no diffusion implementation or test evidence yet.
+
+Tasks, in implementation order:
+
+1. Define the effect model and render contract: Off, HDF or Black Mist; independent 0–100% effect strength; HDF glow color; and parameters needed to reproduce the render. Keep **Look intensity** separate from **Filter strength**. Off and 0% bypass only diffusion, while Original and 0% look intensity bypass only the creative LUT.
+2. Define session behavior. Start each fresh app launch with Off. Keep the active effect and each effect's settings through LUT/lens changes, closing the tray, temporary Off selection and background/foreground within the same app session. The existing remember-last-look preference must not silently restore diffusion across launches.
+3. Build the Filters shortcut beside EV and WB. Reveal the horizontal Off/HDF/Black Mist choices in a tray over the lower preview, then expand the tray upward for effect controls. Keep EV/WB, the LUT strip, look-intensity slider and shutter in place. Add current-effect feedback, accessible control names and a custom glow-color picker.
+4. Add a separate spatial processing stage for HDF highlight bloom with optional colored halation, and Black Mist neutral diffusion/contrast softening. Validate the highlight mask, glow tint, processing order relative to the LUT, color-space handling and normalized bloom radius. The concept's percentages are examples, not calibrated optical strengths.
+5. Integrate the full immutable recipe at shutter time: LUT/intensity, effect type/strength, glow color and required render parameters. Use the same processing contract for preview and full-resolution photos. The clean-original copy bypasses both the LUT and diffusion.
+6. Add meaningful model and image fixtures for bypass, effect switching, session restoration, highlight locality, color behavior, resolution scaling and in-flight capture isolation. Exercise the overlay on compact devices with text scaling and VoiceOver. Measure preview/capture latency, memory and thermal behavior on physical iPhones before tuning release defaults.
+
+Exit evidence:
+
+- Model tests establish independent strengths, one active effect, fresh-launch Off and the specified session transitions.
+- Apple pixel tests establish Off/0% equivalence to the existing LUT-only path, localized HDF glow, neutral Black Mist behavior, clean-copy exclusion and a frozen capture recipe. Preview-sized and full-resolution fixtures establish proportional glow dimensions within documented tolerances.
+- Simulator/device interaction checks establish horizontal selection, expansion/collapse, custom-color picker dismissal, unobscured shutter access and stable control placement.
+- Physical-device comparisons establish the appearance of both effects across representative highlights, skin tones and dark scenes, with measured performance and any limitations recorded in the [validation record](../validation.md).
+
+Existing core and renderer test results do not satisfy these new exit gates. Additional diffusion types, effect stacking and saved effect recipes remain later scope.
+
 ## M5 — Release readiness
 
 Tasks:
 
 - Select and test the supported iPhone/iOS matrix, including different camera/lens capabilities.
 - Review every built-in look against skin tones, neutral references, highlights/shadows, indoor light, and outdoor scenes.
+- Review HDF glow colors and Black Mist with built-in and imported looks, and approve measured effect-strength defaults after M4a validation.
 - Measure preview/capture consistency, latency, memory, thermal behavior, and interrupted-session recovery on device.
 - Finish accessibility, input validation, permission copy, legal/publisher content, and the real feedback destination.
 - Complete signing, app metadata, release assets, distribution, and any store requirements through the appropriate account-controlled workflow.
@@ -98,7 +124,7 @@ Exit evidence: release checks completed with owners, tested versions, results, a
 
 Android is a separate implementation and device-validation milestone. Reuse product behavior, LUT assets/contract, and portable tests where appropriate, while validating Android camera capabilities, color, permissions, and storage independently.
 
-Video, RAW, manual shutter/ISO, grain/halation, saved recipes, and editing existing photos require separate scope and performance decisions. They are not implied by the first-version implementation.
+Video, RAW, manual shutter/ISO, grain, additional diffusion/halation treatments, effect stacking, saved recipes, and editing existing photos require separate scope and performance decisions. The approved HDF/colored-halation and Black Mist subset belongs to M4a; these further additions are not implied by it.
 
 ## Validation responsibilities
 
@@ -108,6 +134,7 @@ Video, RAW, manual shutter/ISO, grain/halation, saved recipes, and editing exist
 | iOS source/project compiles | No | Xcode build on macOS |
 | Interface layout and navigation | Partly through model tests | Simulator/device UI run and accessibility review |
 | Camera controls and live LUT rendering | No | Physical iPhone with representative lighting |
+| Diffusion state and appearance (F10) | State rules only, once tests are implemented | New Apple pixel tests, interactive overlay checks and physical-device appearance/performance evidence |
 | Photos saving, orientation, sharing | No | Apple-platform permission/error-path tests |
 | Android readiness | No | Separate Android application build/device validation |
 
@@ -115,4 +142,4 @@ The onboarding environment is Linux with a prepared Android toolchain. Its earli
 
 ## Current validation evidence
 
-See [the validation record](../validation.md) for the 34 passing core tests, successful iOS simulator build, 7 passing Apple-framework renderer tests, and remaining interactive/device checks. The initial validation found and corrected a CRLF `.cube` parsing issue and a missing app-icon asset. The next milestone is interactive UI and real-camera verification, followed by photographic tuning and release preparation.
+See [the validation record](../validation.md) for the 34 passing core tests, successful iOS simulator build, 7 passing Apple-framework renderer tests, and remaining interactive/device checks. The initial validation found and corrected a CRLF `.cube` parsing issue and a missing app-icon asset. These results cover the implementation before F10. Next work includes M4a diffusion implementation, interactive UI and real-camera verification, followed by photographic tuning and release preparation.
