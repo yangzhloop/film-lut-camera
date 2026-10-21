@@ -2,7 +2,7 @@
 
 The current direction is a minimalist dark camera interface with restrained monochrome controls and colorful, two-section filter labels. This is a design baseline that can evolve during development, not a pixel-locked specification.
 
-The latest approved shooting design adds **Filters** beside EV and WB, with HDF and Black Mist diffusion controls. This extension is specified in [F10](feature-specification.md#f10--diffusion-filters-and-halation), and its model, controls and rendering are now implemented in source. The [implementation plan](diffusion-implementation.md) tracks the integration and checks. New Apple-platform results, photographic quality/performance and manual accessibility review remain outstanding; the concept artwork is not proof of a validated interaction or render.
+The latest approved shooting design adds **Filters** beside EV and WB, with HDF and Black Mist diffusion controls. This extension is specified in [F10](feature-specification.md#f10--diffusion-filters-and-halation), and its model, controls and rendering are implemented. The Apple build, 45 portable tests, 16 renderer tests and 3 simulator UI tests passed. The [implementation plan](diffusion-implementation.md) tracks the integration and checks, and the [validation record](../validation.md) identifies their scope. Photographic quality/performance, manual custom-color-picker interaction and VoiceOver/accessibility review remain outstanding; neither the concept nor the selected automated UI flows establish complete UI validation.
 
 ## Latest approved shooting concept
 
@@ -152,4 +152,4 @@ Exposure compensation belongs to the automatic-exposure workflow. Any later manu
 - Confirm that cancel/back navigation preserves the appropriate camera state and existing filter data.
 - Keep final label colors, spacing, and behavior adaptable as real-device testing reveals constraints.
 - Verify that expanding diffusion controls preserves preview framing and the positions of the look strip and shutter; check touch routing, Reduce Motion and large text.
-- Verify Off/0% behavior, separate look/effect strength, current-session restoration, and clear accessible effect/color selection. The portable model tests pass; new Apple rendering/UI results and manual device/accessibility review remain to be recorded in the [validation record](../validation.md).
+- Verify Off/0% behavior, separate look/effect strength, current-session restoration, and clear accessible effect/color selection. Portable model, Apple renderer and selected simulator UI checks pass. Manual custom-color-picker interaction, VoiceOver/accessibility and physical-device review remain outstanding in the [validation record](../validation.md).

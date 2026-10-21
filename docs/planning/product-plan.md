@@ -1,6 +1,6 @@
 # Lutli product plan
 
-Status: native implementation including the Filters/HDF/Black Mist extension. The detailed behavior and acceptance checks are in the [feature specification](feature-specification.md); sequencing and verification gates are in the [roadmap](roadmap.md). Diffusion model, controls and rendering source are implemented, with 45 portable tests passed. New Apple-platform results, physical-device quality/performance and manual accessibility review remain outstanding; implementation does not establish release readiness.
+Status: native implementation including the Filters/HDF/Black Mist extension. The detailed behavior and acceptance checks are in the [feature specification](feature-specification.md); sequencing and verification gates are in the [roadmap](roadmap.md). The Apple build, 45 portable tests, 16 renderer tests and 3 simulator UI tests passed; see the [validation record](../validation.md). Physical-device quality/performance, manual custom-color-picker interaction and VoiceOver/accessibility review remain outstanding. These automated checks do not establish release readiness or verify every UI flow.
 
 ## Product goal
 
@@ -63,7 +63,7 @@ Video, RAW/ProRAW, manual shutter/ISO, grain, effect stacking, saved recipes, ed
 
 - iOS 17 is the initial deployment target. The supported device matrix and release-level compatibility still require Apple-platform validation.
 - Final bundled grades need photographic review across skin tones, lighting, and supported devices.
-- HDF and Black Mist have an initial processing order, normalized bloom sizing and development defaults. They still need Apple rendering/UI verification, photographic review of glow colors and strengths, and physical-device image/performance measurements. The mockup and portable model tests do not establish those results.
+- HDF and Black Mist have an initial processing order, normalized bloom sizing and development defaults, with Apple renderer and selected simulator UI checks passed. They still need manual custom-color-picker and VoiceOver/accessibility review, photographic review of glow colors and strengths, and physical-device image/performance measurements.
 - Camera throughput, capture latency, thermal behavior, output color consistency, and accessibility require Apple-platform and physical-device verification.
 - Feedback destination, publisher identity, production legal copy, signing, distribution, and release metadata are not invented by the implementation.
 - Any change to the five-slot limit, supported LUT types, or deferred features should update the feature specification and acceptance checks together.

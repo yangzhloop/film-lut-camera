@@ -2,7 +2,7 @@
 
 This is the actionable first-version specification for Lutli. It expands the approved concept with working defaults needed for implementation. Native iOS uses SwiftUI, AVFoundation, and Core Image with an iOS 17 deployment target. Domain logic lives in the portable `LutliCore` Swift package. Requirements describe intended behavior; they do not claim that code has been implemented or validated. See the [roadmap](roadmap.md) for evidence gates.
 
-F01–F09 describe the initial implementation baseline. **F10 now has source implementations for its model, controls and rendering.** The portable suite passes 45 tests, including diffusion model checks; new Apple rendering/UI results and physical-device acceptance remain outstanding. The [latest UI concept](ui-ux.md) shows the approved interaction, and the [implementation plan](diffusion-implementation.md) records the development sequence. See the [validation record](../validation.md) for executed evidence rather than inferring completion from these requirements.
+F01–F09 describe the initial implementation baseline. **F10's model, controls and rendering are implemented.** The Apple build, 45 portable tests, 16 renderer tests and 3 simulator UI tests passed. Physical-device acceptance, manual custom-color-picker interaction and VoiceOver/accessibility review remain outstanding; the automated UI tests cover selected flows only. The [latest UI concept](ui-ux.md) shows the approved interaction, and the [implementation plan](diffusion-implementation.md) records the development sequence. See the [validation record](../validation.md) for executed evidence rather than inferring completion from these requirements.
 
 ## F01 — Camera and session lifecycle
 
@@ -153,7 +153,7 @@ Acceptance:
 
 ## F10 — Diffusion filters and halation
 
-**Status: model, controls and renderer implemented in source; Apple-platform and physical-device validation pending.** The portable model is covered by the passing 45-test core suite. This feature extends the LUT camera with spatial light effects. The approved mockup is an interaction reference, not a calibrated example of the rendering algorithm.
+**Status: implemented; Apple build and automated model, renderer and selected UI checks passed.** The passing suites contain 45 portable tests, 16 renderer tests (including 9 diffusion tests), and 3 simulator UI tests. Manual custom-color-picker interaction, VoiceOver/accessibility, photographic tuning and physical-device validation remain pending. This feature extends the LUT camera with spatial light effects. The approved mockup is an interaction reference, not a calibrated example of the rendering algorithm.
 
 ### Effect selection and controls
 
@@ -189,7 +189,7 @@ Acceptance:
 
 The implementation adds a spatial rendering stage beyond the LUT. Highlight extraction uses the ungraded source, while the glow is composited after LUT grading so custom/preset tint is not subsequently changed by that LUT. Neutral HDF and Black Mist derive light color from the graded photograph. Soft glow/contrast layers are limited to a 640-pixel long edge; the base image retains its full capture resolution. Blur radii scale relative to image dimensions, and the result is cropped back to the original extent. Off and 0% follow the unchanged LUT-only path. The full recipe is frozen at shutter time, and the clean copy branches before both creative stages.
 
-These are initial artistic algorithm choices that still require Apple image tests and photographic comparison. Keep processing off the UI thread and retain bounded preview delivery. The following acceptance checks distinguish the passing portable model tests from Apple/UI/device evidence still to be recorded:
+Apple image fixtures and selected simulator UI checks pass for these initial artistic algorithm choices. Photographic comparison, manual custom-color-picker interaction, VoiceOver/accessibility and physical-device performance still require verification. Keep processing off the UI thread and retain bounded preview delivery. The following acceptance requirements remain the full checklist; consult the [validation record](../validation.md) for the completed automated subset and remaining manual/device evidence:
 
 - **UI:** open Filters, select HDF, adjust amount and color, select Black Mist, close and reopen, and choose Off. The toolbar and shutter stay reachable; Black Mist exposes no HDF-only controls. Check small screens, large text, VoiceOver, focus hit testing and tray dismissal.
 - **State:** only one effect is active; closing and Off/reselection preserve settings within the app session. LUT/camera changes and background/resume preserve them. A fresh launch starts Off regardless of remember-last-look.

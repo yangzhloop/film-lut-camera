@@ -21,6 +21,12 @@ This implements the approved [F10 specification](feature-specification.md#f10--d
 
 The core model, renderer and interface can be implemented independently against the shared settings contract. Camera forwarding, generated project configuration and CI integrate those pieces. Tests must execute before their results are marked as passed in the [validation record](../validation.md).
 
+## Implementation result
+
+The model, renderer, camera forwarding and overlay are implemented. The [validation record](../validation.md) records **45 passing portable tests, 16 passing Apple renderer tests and 3 passing simulator UI tests**, with the successful run tied to application commit `3497cf8`. The shared render recipe preserves settings through independent LUT/effect updates and snapshots both at shutter time.
+
+Device photographic tuning and performance remain the next gate. Manual custom-color-picker interaction, VoiceOver, Reduce Motion, compact-device reachability, real camera/lens transitions and background recovery still require review. Automated simulator results do not close those checks.
+
 ## Boundaries
 
 Only one diffusion effect is active at a time. This work does not add physical optical-filter equivalence, effect stacking, saved effect recipes, grain, RAW, video or Android. It does not infer final image quality or device performance from a mockup or successful simulator test.

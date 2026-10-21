@@ -62,7 +62,7 @@ The [latest UI/UX concept](docs/planning/ui-ux.md#latest-approved-shooting-conce
 
 The [F10 feature specification](docs/planning/feature-specification.md#f10--diffusion-filters-and-halation) now has source implementations for the model, controls and rendering. Each fresh launch starts with diffusion Off. HDF initially uses 35% with Neutral glow and Black Mist uses 20%; these are development tuning values, not calibrated optical-filter equivalents.
 
-The portable suite passes **45 tests**, including the diffusion model. New Apple build, renderer and UI results remain to be recorded; earlier Apple results cover the preceding LUT-only implementation. Physical-device appearance, performance and manual accessibility review remain required. See the [diffusion implementation plan](docs/planning/diffusion-implementation.md), [roadmap](docs/planning/roadmap.md) and [validation record](docs/validation.md).
+Validation passed on commit `3497cf8`: **45 portable tests, 16 iOS renderer tests and 3 simulator UI tests**, with zero failures, plus the Apple build ([CI run](https://github.com/yangzhloop/film-lut-camera/actions/runs/39650156405)). The UI tests cover selected diffusion interactions; they do not establish every app flow. Physical-device appearance/performance, manual custom-color-picker interaction and VoiceOver/accessibility review remain required. See the [diffusion implementation plan](docs/planning/diffusion-implementation.md), [roadmap](docs/planning/roadmap.md) and [validation record](docs/validation.md).
 
 ## Product and engineering documents
 

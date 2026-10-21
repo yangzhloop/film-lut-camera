@@ -1,6 +1,6 @@
 # Native iOS architecture
 
-Status: native iOS implementation with the F10 diffusion extension integrated in source. The user chose SwiftUI after comparing it with a shared Flutter UI. Android remains a later platform implementation. The current 45 core tests pass; native diffusion renderer/UI CI and physical-device validation remain pending. See the [diffusion implementation plan](../planning/diffusion-implementation.md).
+Status: native iOS implementation with the F10 diffusion extension integrated in source. The user chose SwiftUI after comparing it with a shared Flutter UI. Android remains a later platform implementation. CI passes all 45 core tests, 16 Apple renderer tests and 3 simulator UI tests. Physical-device validation and the remaining manual interaction/accessibility checks are pending. See the [diffusion implementation plan](../planning/diffusion-implementation.md).
 
 ## Components
 
@@ -45,15 +45,15 @@ The `LUTRenderer.Recipe` contains the already blended LUT data plus diffusion se
 
 `DiffusionRenderer` adds spatial processing after LUT grading. It derives a thresholded highlight mask from the ungraded, clamped input's peak RGB component so saturated lights can contribute as well as white lights. Neutral HDF and Black Mist use the graded highlight color; named/custom HDF colors tint the highlight contribution before blurring. Close and wide Gaussian layers are combined and screen-composited over the graded base. Black Mist also applies a restrained blend with a softened base for local contrast reduction.
 
-Only the soft-light and softening layers are downscaled to a maximum 640-pixel long edge. The base image retains full capture resolution, and blur radii are fractions of the working image dimensions. The soft layers are scaled back for compositing, with the original extent and origin restored. This bounds blur work and defines proportional preview/photo glow; appearance, edge behavior and proportionality still require the new Apple tests and physical-image review.
+Only the soft-light and softening layers are downscaled to a maximum 640-pixel long edge. The base image retains full capture resolution, and blur radii are fractions of the working image dimensions. The soft layers are scaled back for compositing, with the original extent and origin restored. This bounds blur work and defines proportional preview/photo glow. The Apple fixture tests pass, including resolution scaling; physical-image review must still establish final photographic quality and behavior across supported cameras.
 
 Off or 0% effect strength returns the graded image without running diffusion. Original or 0% look intensity leaves an active diffusion effect in place. The optional clean-original JPEG is rendered directly from the capture before both creative stages, retaining camera exposure/WB processing; it is still a processed JPEG, not RAW. The `.cube` import contract and stored LUT files are unchanged.
 
 `LutliAppModel` keeps diffusion in session memory independently of look preferences. Settings survive LUT/lens changes, tray dismissal, Off/reselection and background/foreground within that app session. Remember-last-look restores only the look; diffusion is not written to disk.
 
-The implemented SwiftUI tray overlays the preview's lower edge and expands upward from Filters beside EV/WB. Preview geometry, permanent toolbar, LUT strip and shutter stay fixed. The tray intercepts its own touches, hides the lens controls while open, and offers bounded scrolling, selected-state accessibility labels and Reduce Motion support. Manual VoiceOver and compact-device review remain pending.
+The implemented SwiftUI tray overlays the preview's lower edge and expands upward from Filters beside EV/WB. Preview geometry, permanent toolbar, LUT strip and shutter stay fixed. The tray intercepts its own touches, hides the lens controls while open, and offers bounded scrolling, selected-state accessibility labels and Reduce Motion support. The simulator interaction tests pass; manual custom-color-picker, VoiceOver and compact-device review remain pending.
 
-The portable suite now passes 45 tests, including diffusion state and immutable-setting behavior. New Apple renderer and simulator UI tests cover bypass, glow locality/tint, resolution scaling, full-recipe capture, clean-copy exclusion and tray interactions; their CI results are pending. The earlier seven passing renderer tests establish the pre-F10 baseline only. Final mask/strength tuning, skin-tone and dark-scene review, latency, memory and thermal measurements remain physical-device work.
+The portable suite passes 45 tests, including diffusion state and immutable-setting behavior. Apple CI passes 16 renderer tests (9 diffusion tests plus the 7 existing tests) and 3 simulator UI tests, with zero failures at application commit `3497cf8`. Coverage includes bypass, glow locality/tint, resolution scaling, full-recipe capture, clean-copy exclusion and tray interactions; see the [validation record](../validation.md) for the run evidence and limits. Final mask/strength tuning, skin-tone and dark-scene review, latency, memory and thermal measurements remain physical-device work. Manual custom-color-picker and VoiceOver checks are also outstanding.
 
 ## LUT contract
 
