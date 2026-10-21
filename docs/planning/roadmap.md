@@ -1,6 +1,6 @@
 # Development roadmap
 
-This roadmap implements the [product plan](product-plan.md) and [feature specification](feature-specification.md). Native iOS with SwiftUI has been selected; detailed implementation starts against the scope below. Source has now been implemented for the initial workflow. A milestone becomes validated only when its exit evidence exists. Source implementation and successful platform execution are separate facts. There are no promised delivery dates.
+This roadmap implements the [product plan](product-plan.md) and [feature specification](feature-specification.md). The initial native iOS workflow is implemented in SwiftUI, builds on the Apple toolchain, and passes the portable-core and renderer integration tests. A milestone becomes validated only when its full exit evidence exists; interactive UI and physical-device checks remain separate requirements. There are no promised delivery dates.
 
 ## Milestone overview
 
@@ -8,8 +8,8 @@ This roadmap implements the [product plan](product-plan.md) and [feature specifi
 | --- | --- | --- | --- |
 | M0 — Decisions and contracts | Framework, supported platform baseline, LUT contract, data model, build strategy | Product/UI baseline | Architecture recorded; build/test path documented |
 | M1 — Domain core | LUT parser, bundled looks, label validation, persistent collection, settings | M0 | Implemented; 34 core XCTest cases passed on Linux |
-| M2 — App interface | Camera layout, menu, library, import/editor, state feedback, accessibility | M0; M1 models | Source implemented and syntax checked; Apple UI run pending |
-| M3 — Camera and rendering | Live camera, LUT preview, exposure/WB, still capture and processing | M1; camera UI | Source implemented; Apple-framework/device checks pending |
+| M2 — App interface | Camera layout, menu, library, import/editor, state feedback, accessibility | M0; M1 models | Implemented and compiled on Apple CI; interactive UI checks pending |
+| M3 — Camera and rendering | Live camera, LUT preview, exposure/WB, still capture and processing | M1; camera UI | Implemented; 7 Apple renderer tests passed; physical camera checks pending |
 | M4 — End-to-end behavior | Saving/review, preferences, import/replace/delete, relaunch and error paths | M1–M3 | Source integrated; native end-to-end checks pending |
 | M5 — Device and release validation | Apple builds, camera matrix, photographic quality, accessibility, release content | M4 | Not validated; release gates remain |
 | M6 — Android and later features | Android camera parity and separately approved additions | Stable iOS contracts | Deferred |
@@ -115,4 +115,4 @@ The onboarding environment is Linux with a prepared Android toolchain. Its earli
 
 ## Current validation evidence
 
-See [the validation record](../validation.md) for the 34 passing core tests, structural/syntax checks, and explicitly unrun Apple/device checks. The initial core run found and corrected a CRLF `.cube` parsing issue. Seven Apple-framework rendering tests are included for the macOS CI job; their presence does not establish a passing run.
+See [the validation record](../validation.md) for the 34 passing core tests, successful iOS simulator build, 7 passing Apple-framework renderer tests, and remaining interactive/device checks. The initial validation found and corrected a CRLF `.cube` parsing issue and a missing app-icon asset. The next milestone is interactive UI and real-camera verification, followed by photographic tuning and release preparation.
